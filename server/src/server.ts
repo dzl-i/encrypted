@@ -22,7 +22,7 @@ const HOST: string = process.env.IP || 'localhost';
 
 // HEALTH CHECK ROUTE
 app.get('/', (req: Request, res: Response) => {
-  return res.json({
+  return res.status(200).json({
     message: "Server is up!"
   });
 });
@@ -32,7 +32,7 @@ app.get('/', (req: Request, res: Response) => {
 app.post('/auth/register', async (req: Request, res: Response) => {
   try {
     const { name, email, password, handle } = req.body;
-    res.json(await authRegister(name, email, password, handle));
+    res.status(200).json(await authRegister(name, email, password, handle));
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -42,7 +42,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 app.post('/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    res.json(await authLogin(email, password));
+    res.status(200).json(await authLogin(email, password));
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

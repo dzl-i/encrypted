@@ -6,6 +6,7 @@ import cors from 'cors';
 
 // Route Functions
 import { authRegister } from './auth/authRegister';
+import { authLogin } from './auth/authLogin';
 
 
 // Set up web app using JSON
@@ -19,7 +20,7 @@ const PORT: number = parseInt(process.env.PORT || config.port);
 const HOST: string = process.env.IP || 'localhost';
 
 
-// Health check for the server
+// HEALTH CHECK ROUTE
 app.get('/', (req: Request, res: Response) => {
   return res.json({
     message: "Server is up!"
@@ -32,6 +33,16 @@ app.post('/auth/register', async (req: Request, res: Response) => {
   try {
     const { name, email, password, handle } = req.body;
     res.json(await authRegister(name, email, password, handle));
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
+app.post('/auth/login', async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    res.json(await authLogin(email, password));
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

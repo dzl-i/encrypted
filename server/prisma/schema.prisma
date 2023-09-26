@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id                     String    @id @default(uuid())
+    name                   String
+    email                  String    @unique
+    password               String
+    handle                 String    @unique
+    remainingLoginAttempts Int       @default(3)
+    isBlocked              Boolean   @default(false)
+    messages               Message[]
+    memberOfGroups         Group[]
+    memberOfDms            Dm[]
+    tokens                 Token[]
+}
+
+model Message {
+    id       String   @id @default(uuid())
+    sender   User     @relation(fields: [senderId], references: [id])
+    senderId String
+    message  String
+    timeSent DateTime @default(now())
+    dm       Dm?      @relation(fields: [dmId], references: [id])
+    dmId     String?
+    Group    Group?   @relation(fields: [groupId], references: [id])
+    groupId  String?
+}
+
+model Group {
+    id        String    @id @default(uuid())
+    groupName String
+    messages  Message[]
+    members   User[]
+}
+
+model Dm {
+    id       String    @id @default(uuid())
+    messages Message[]
+    members  User[]
+}
+
+model Token {
+    id        String   @id @default(uuid())
+    token     String   @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
+    createdAt DateTime @default(now())
+    expiresBy DateTime
+}

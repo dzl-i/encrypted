@@ -2,7 +2,6 @@
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
 import errorHandler from "middleware-http-errors";
-import config from './config.json';
 import cors from 'cors';
 
 // Route Functions
@@ -17,8 +16,7 @@ app.use(express.json());
 // Use middleware that allows for access from other domains
 app.use(cors());
 
-const PORT: number = parseInt(process.env.PORT || config.port);
-const HOST: string = process.env.IP || 'localhost';
+const PORT: number = parseInt(process.env.PORT || '3000');
 
 
 // HEALTH CHECK ROUTE
@@ -58,8 +56,8 @@ app.use(morgan('dev'));
 app.use(errorHandler());
 
 // Start server
-const server = app.listen(PORT, HOST, () => {
-  console.log(`⚡️ Server listening on port ${process.env.PORT || config.port}`);
+const server = app.listen(PORT, () => {
+  console.log(`⚡️ Server listening on port ${process.env.PORT || '3000'}`);
 });
 
 // For coverage, handle Ctrl+C gracefully

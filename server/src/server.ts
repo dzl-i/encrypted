@@ -1,6 +1,7 @@
 // Server imports
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
+import errorHandler from "middleware-http-errors";
 import config from './config.json';
 import cors from 'cors';
 
@@ -22,6 +23,7 @@ const HOST: string = process.env.IP || 'localhost';
 
 // HEALTH CHECK ROUTE
 app.get('/', (req: Request, res: Response) => {
+  console.log("Health check")
   return res.status(200).json({
     message: "Server is up!"
   });
@@ -52,6 +54,8 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
 // Logging errors
 app.use(morgan('dev'));
+
+app.use(errorHandler());
 
 // Start server
 const server = app.listen(PORT, HOST, () => {

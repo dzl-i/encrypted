@@ -15,7 +15,7 @@ export async function authRegister(name: string, email: string, password: string
   if (passwordStrength(password).value !== "Strong")
     throw { status: 400, message: "Password must have a lowercase and uppercase letter, a symbol, and a number" };
   if (name.length < 1) throw { status: 400, message: "Name cannot be empty" };
-  if (! await checkHandleExists(handle)) throw { status: 400, message: "Handle is already being used by another user." };
+  if (await checkHandleExists(handle)) throw { status: 400, message: "Handle is already being used by another user." };
 
   // Create the user
   const user = await prisma.user.create({

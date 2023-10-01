@@ -11,17 +11,17 @@ datasource db {
 }
 
 model User {
-    id                     String    @id @default(uuid())
+    id                     String         @id @default(uuid())
     name                   String
-    email                  String    @unique
+    email                  String         @unique
     password               String
-    handle                 String    @unique
-    remainingLoginAttempts Int       @default(3)
-    isBlocked              Boolean   @default(false)
+    handle                 String         @unique
+    remainingLoginAttempts Int            @default(3)
+    isBlocked              Boolean        @default(false)
     messages               Message[]
     memberOfGroups         Group[]
     memberOfDms            Dm[]
-    tokens                 Token[]
+    tokens                 RefreshToken[]
 }
 
 model Message {
@@ -49,11 +49,9 @@ model Dm {
     members  User[]
 }
 
-model Token {
-    id        String   @id @default(uuid())
-    token     String   @unique
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId    String
-    createdAt DateTime @default(now())
-    expiresBy DateTime
+model RefreshToken {
+    id     String @id @default(uuid())
+    token  String @unique
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String
 }

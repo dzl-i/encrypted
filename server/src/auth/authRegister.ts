@@ -28,10 +28,11 @@ export async function authRegister(name: string, email: string, password: string
   });
 
   // Generate the token
-  const token = await generateToken(user.id);
+  const { accessToken, refreshToken } = await generateToken(user.id);
 
   return {
-    token: token,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
     userId: user.id
-  }
+  };
 }

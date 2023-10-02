@@ -11,10 +11,11 @@ export async function authLogin(email: string, password: string) {
   // Get User
   const user = await getUserByEmail(email);
   if (user === null) throw { status: 400, message: "Email does not exist" };
-  const token = await generateToken(user.id);
+  const { accessToken, refreshToken } = await generateToken(user.id);
 
   return {
-    token: token,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
     userId: user.id
   };
 }

@@ -62,10 +62,11 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
 app.post('/auth/refresh', async (req: Request, res: Response) => {
   try {
-    const { refreshToken, id } = req.body;
-    const token = await authRefresh(refreshToken, id);
+    const refreshToken = req.cookies.refreshToken;
+    const token = await authRefresh(refreshToken);
     res.cookie('accessToken', token.accessToken, { httpOnly: true, secure: true });
     res.cookie('refreshToken', token.refreshToken, { httpOnly: true, secure: true });
+    res.sendStatus(200);
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -101,7 +102,7 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
 
   try {
     // Verify the access token
-    jwt.verify(token, process.env.ACCESS_JWT_SECRET as string, async (err, decodedToken: any) => {
+    jwt.verify(token, process.env.ACCESS_JWT_SECRET as string, async (err) => {
       if (err) {
         if (err.name === 'TokenExpiredError') {
           // Token has expired; try to refresh it
@@ -110,7 +111,7 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
           if (refreshToken) {
             try {
               // Call authRefresh to refresh tokens
-              const { accessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken, decodedToken.userId);
+              const { accessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
 
               // Set the new access and refresh tokens in cookies
               res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });

@@ -49,3 +49,13 @@ export async function checkValidToken(refreshToken: string) {
 
   if (res === null) return false; else return true;
 }
+
+export async function getIdFromToken(refreshToken: string) {
+  const res = await prisma.refreshToken.findFirst({
+    where: {
+      token: getHash(refreshToken)
+    }
+  });
+
+  if (res === null) return null; else return res.id;
+}

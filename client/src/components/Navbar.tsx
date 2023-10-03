@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem, DropdownTrigger, Dropdown, DropdownMenu } from "@nextui-org/react";
 import { ChevronDown, Lock, Activity, Flash, Server, TagUser, Scale } from "./logo/Logo";
 import { EncryptedLogo } from "./logo/EncryptedLogo";
+
+import "dotenv/config";
 
 export const NavBar = () => {
   const icons = {
@@ -13,6 +16,40 @@ export const NavBar = () => {
     flash: <Flash className="text-primary" fill="currentColor" size={30} />,
     server: <Server className="text-success" fill="currentColor" size={30} />,
     user: <TagUser className="text-danger" fill="currentColor" size={30} />,
+  };
+
+  const router = useRouter();
+
+  const handleLoginOrSignupClick = async (route: string) => {
+    try {
+      // Make a request to the /auth/refresh route to refresh the token
+      const response = await fetch(`${process.env.API_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(response)
+      console.log("response.ok is " + response.ok)
+
+      if (response.ok) {
+        console.log("here")
+
+        // Redirect to the "/message" route upon successful sign-up
+        router.push("/message");
+      } else {
+        // Handle error response from the API
+        console.error("API Error: ", response.statusText);
+
+        router.push(route);
+      }
+    } catch (error) {
+      // Handle token refresh failure (e.g., display an error message)
+      console.error("Token refresh failed: ", error);
+      router.push(route);
+    }
   };
 
   return (
@@ -95,12 +132,12 @@ export const NavBar = () => {
       <NavbarContent justify="end">
         <NavbarContent justify="end">
           <NavbarItem className="hidden lg:flex">
-            <Button as={Link} color="primary" href="/login" variant="light">
+            <Button color="primary" variant="light" onClick={async () => handleLoginOrSignupClick("/login")}>
               Log In
             </Button>
           </NavbarItem>
           <NavbarItem>
-            <Button as={Link} color="primary" href="/register" variant="solid">
+            <Button color="primary" variant="solid" onClick={async () => handleLoginOrSignupClick("/register")}>
               Sign Up
             </Button>
           </NavbarItem>

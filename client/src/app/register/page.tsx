@@ -1,14 +1,20 @@
 "use client"
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { Button, Card, CardBody, Divider, Input, Link } from "@nextui-org/react";
+import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-org/react";
 import { NavBar } from "@/components/Navbar";
+
+import "dotenv/config";
 
 export default function Page() {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [username, setUsername] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
@@ -28,6 +34,8 @@ export default function Page() {
 
   const handleSignIn = async () => {
     try {
+      setIsLoading(true);
+
       // Construct an object with the input values
       const userData = {
         name,
@@ -37,8 +45,9 @@ export default function Page() {
       };
 
       // Send the userData to your API using fetch
-      const response = await fetch(`http://localhost:3000/auth/register`, {
+      const response = await fetch(`${process.env.API_URL}/auth/register`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -47,8 +56,11 @@ export default function Page() {
 
       if (response.ok) {
         const data = await response.json();
-        // Handle the response from the API
-        console.log("API Response:", data);
+
+        // TODO: setAuth
+
+        // Redirect to the "/message" route upon successful sign-up
+        router.push("/message");
       } else {
         // Handle error response from the API
         console.error("API Error:", response.statusText);
@@ -56,6 +68,8 @@ export default function Page() {
     } catch (error) {
       // Handle any other errors
       console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,12 +78,12 @@ export default function Page() {
       <NavBar />
       <Card style={{ width: "35%", padding: "2rem", border: "0.1rem solid rgba(255, 255, 255, 0.4)", marginTop: "80px" }} className="flex items-center flex-col">
         <CardBody className="flex w-full flex-wrap md:flex-nowrap mb-6 md:mb-0 gap-5 items-center">
-          <Input isRequired size="md" type="ame" label="Full Name" placeholder="Enter your full name" onChange={handleNameChange} />
+          <Input isRequired size="md" type="name" label="Full Name" placeholder="Enter your full name" onChange={handleNameChange} />
           <Input isRequired size="md" type="email" label="Email" placeholder="Enter your email" onChange={handleEmailChange} />
           <Input isRequired size="md" type="password" label="Password" placeholder="Enter your password" onChange={handlePasswordChange} />
           <Input isRequired size="md" type="" label="Username" placeholder="Enter your username" onChange={handleUsernameChange} />
-          <Button color="primary" variant="solid" style={{ width: "40%" }} onClick={handleSignIn}>
-            Sign In
+          <Button color="primary" variant="solid" style={{ width: "40%" }} onClick={handleSignIn} disabled={isLoading}>
+            {isLoading ? <Spinner size="md" color="default" /> : "Sign Up"}
           </Button>
         </CardBody>
         <Divider />

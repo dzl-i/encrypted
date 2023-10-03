@@ -57,5 +57,5 @@ export async function getIdFromToken(refreshToken: string) {
     }
   });
 
-  if (res === null) return null; else return res.id;
+  if (res === null) return null; else return res.userId;
 }

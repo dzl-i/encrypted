@@ -19,7 +19,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Use middleware that allows for access from other domains
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3001", "https://encrypted-pc97.onrender.com", "https://api.encrypted.denzeliskandar.com"],
+  credentials: true
+}));
 
 const PORT: number = parseInt(process.env.PORT || '3000');
 
@@ -38,8 +41,13 @@ app.post('/auth/register', async (req: Request, res: Response) => {
   try {
     const { name, email, password, handle } = req.body;
     const { accessToken, refreshToken, userId } = await authRegister(name, email, password, handle);
-    res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+
+    // Assign cookies
+    res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+
+    res.header('Access-Control-Allow-Credentials', 'true');
+
     res.status(200).json({ userId: userId });
   } catch (error: any) {
     console.error(error);
@@ -51,8 +59,13 @@ app.post('/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const { accessToken, refreshToken, userId } = await authLogin(email, password);
-    res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+
+    // Assign cookies
+    res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+
+    res.header('Access-Control-Allow-Credentials', 'true');
+
     res.status(200).json({ userId: userId });
   } catch (error: any) {
     console.error(error);
@@ -64,8 +77,13 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     const token = await authRefresh(refreshToken);
-    res.cookie('accessToken', token.accessToken, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', token.refreshToken, { httpOnly: true, secure: true });
+
+    // Assign cookies
+    res.cookie('accessToken', token.accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
+    res.cookie('refreshToken', token.refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+
+    res.header('Access-Control-Allow-Credentials', 'true');
+
     res.sendStatus(200);
   } catch (error: any) {
     console.error(error);
@@ -114,8 +132,8 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
               const { accessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
 
               // Set the new access and refresh tokens in cookies
-              res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
-              res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
+              res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
+              res.cookie('refreshToken', newRefreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
 
               // Continue with the request using the new access token
               req.headers['authorization'] = `Bearer ${accessToken}`;

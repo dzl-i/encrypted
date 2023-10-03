@@ -33,7 +33,7 @@ export default function Page() {
       };
 
       // Send the userData to your API using fetch
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/login`, {
+      const response = await fetch(`${process.env.API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -43,7 +43,7 @@ export default function Page() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        // const data = await response.json();
 
         // TODO: setAuth
 

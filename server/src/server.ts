@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 // Use middleware that allows for access from other domains
 app.use(cors({
-  origin: ["http://localhost:3001", "https://encrypted-pc97.onrender.com", "https://api.encrypted.denzeliskandar.com"],
+  origin: ["http://localhost:3001", "https://encrypted-tau.vercel.app", "https://encrypted.denzeliskandar.com"],
   credentials: true
 }));
 

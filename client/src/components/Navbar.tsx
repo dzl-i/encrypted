@@ -23,7 +23,7 @@ export const NavBar = () => {
   const handleLoginOrSignupClick = async (route: string) => {
     try {
       // Make a request to the /auth/refresh route to refresh the token
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/refresh`, {
+      const response = await fetch(`${process.env.API_URL}/auth/refresh`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -31,12 +31,7 @@ export const NavBar = () => {
         },
       });
 
-      console.log(response)
-      console.log("response.ok is " + response.ok)
-
       if (response.ok) {
-        console.log("here")
-
         // Redirect to the "/message" route upon successful sign-up
         router.push("/message");
       } else {

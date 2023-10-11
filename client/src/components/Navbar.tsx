@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem, DropdownTrigger, Dropdown, DropdownMenu } from "@nextui-org/react";
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem, DropdownTrigger, Dropdown, DropdownMenu, Spinner } from "@nextui-org/react";
 import { ChevronDown, Lock, Activity, Flash, Server, TagUser, Scale } from "./logo/Logo";
 import { EncryptedLogo } from "./logo/EncryptedLogo";
 
 import "dotenv/config";
 
 export const NavBar = () => {
+  const [isLoadingSignup, setIsLoadingSignup] = useState(false);
+  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
+
   const icons = {
     chevron: <ChevronDown fill="currentColor" size={16} />,
     scale: <Scale className="text-warning" fill="currentColor" size={30} />,
@@ -22,6 +25,12 @@ export const NavBar = () => {
 
   const handleLoginOrSignupClick = async (route: string) => {
     try {
+      if (route === "/login") {
+        setIsLoadingLogin(true);
+      } else if (route === "/register") {
+        setIsLoadingSignup(true);
+      }
+
       // Make a request to the /auth/refresh route to refresh the token
       const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/refresh`, {
         method: "POST",
@@ -44,6 +53,9 @@ export const NavBar = () => {
       // Handle token refresh failure (e.g., display an error message)
       console.error("Token refresh failed: ", error);
       router.push(route);
+    } finally {
+      setIsLoadingLogin(false);
+      setIsLoadingSignup(false);
     }
   };
 
@@ -127,13 +139,13 @@ export const NavBar = () => {
       <NavbarContent justify="end">
         <NavbarContent justify="end">
           <NavbarItem className="hidden lg:flex">
-            <Button color="primary" variant="light" onClick={async () => handleLoginOrSignupClick("/login")}>
-              Log In
+            <Button color="primary" variant="light" onClick={async () => handleLoginOrSignupClick("/login")} disabled={isLoadingLogin}>
+              {isLoadingLogin ? <Spinner size="md" color="default" /> : "Log In"}
             </Button>
           </NavbarItem>
           <NavbarItem>
-            <Button color="primary" variant="solid" onClick={async () => handleLoginOrSignupClick("/register")}>
-              Sign Up
+            <Button color="primary" variant="solid" onClick={async () => handleLoginOrSignupClick("/register")} disabled={isLoadingSignup}>
+              {isLoadingSignup ? <Spinner size="md" color="default" /> : "Sign Up"}
             </Button>
           </NavbarItem>
         </NavbarContent>

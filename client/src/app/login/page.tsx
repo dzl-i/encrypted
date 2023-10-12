@@ -6,11 +6,13 @@ import { NavBar } from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 
 import "dotenv/config";
+import { ErrorMessage } from "@/components/ErrorMessage";
 
 export default function Page() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -51,11 +53,12 @@ export default function Page() {
         router.push("/message");
       } else {
         // Handle error response from the API
-        console.error("API Error:", response.statusText);
+        const errorData = await response.json();
+        setErrorMessage(errorData.error);  // Set the error message received from backend
       }
     } catch (error) {
       // Handle any other errors
-      console.error("Error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +71,7 @@ export default function Page() {
         <CardBody className="flex w-full flex-wrap md:flex-nowrap mb-6 md:mb-0 gap-5 items-center">
           <Input isRequired size="md" type="email" label="Email" placeholder="Enter your email" onChange={handleEmailChange} />
           <Input isRequired size="md" type="password" label="Password" placeholder="Enter your password" onChange={handlePasswordChange} />
+          <ErrorMessage message={errorMessage} onClose={() => setErrorMessage(null)} />
           <Button color="primary" variant="solid" style={{ width: "40%" }} onClick={handleSignIn} disabled={isLoading}>
             {isLoading ? <Spinner size="md" color="default" /> : "Log In"}
           </Button>

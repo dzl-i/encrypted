@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-org/react";
 import { NavBar } from "@/components/Navbar";
+import { ErrorMessage } from "@/components/ErrorMessage";
 
 import "dotenv/config";
 
@@ -12,7 +13,8 @@ export default function Page() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [username, setUsername] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -63,11 +65,12 @@ export default function Page() {
         router.push("/message");
       } else {
         // Handle error response from the API
-        console.error("API Error:", response.statusText);
+        const errorData = await response.json();
+        setErrorMessage(errorData.error);  // Set the error message received from backend
       }
     } catch (error) {
       // Handle any other errors
-      console.error("Error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +85,7 @@ export default function Page() {
           <Input isRequired size="md" type="email" label="Email" placeholder="Enter your email" onChange={handleEmailChange} />
           <Input isRequired size="md" type="password" label="Password" placeholder="Enter your password" onChange={handlePasswordChange} />
           <Input isRequired size="md" type="" label="Username" placeholder="Enter your username" onChange={handleUsernameChange} />
+          <ErrorMessage message={errorMessage} onClose={() => setErrorMessage(null)} />
           <Button color="primary" variant="solid" style={{ width: "40%" }} onClick={handleSignIn} disabled={isLoading}>
             {isLoading ? <Spinner size="md" color="default" /> : "Sign Up"}
           </Button>

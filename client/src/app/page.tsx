@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 
-import { NavBar } from "@/components/Navbar";
+import { NavBar } from "@/components/NavbarPublic";
 import { Features } from "@/components/Features";
 import { Button, Card, CardBody, Divider, Input, Link } from "@nextui-org/react";
 

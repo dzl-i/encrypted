@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 
 import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-org/react";
-import { NavBar } from "@/components/Navbar";
+import { NavBar } from "@/components/NavbarPublic";
 import { useRouter } from "next/navigation";
 
 import "dotenv/config";

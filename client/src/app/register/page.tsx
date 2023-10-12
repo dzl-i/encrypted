@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-org/react";
-import { NavBar } from "@/components/Navbar";
+import { NavBar } from "@/components/NavbarPublic";
 import { ErrorMessage } from "@/components/ErrorMessage";
 
 import "dotenv/config";

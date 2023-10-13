@@ -21,7 +21,8 @@ export async function generateToken(id: string) {
   // Add the token to the database
   await prisma.refreshToken.create({
     data: {
-      token: getHash(refreshToken),
+      accessToken: getHash(accessToken),
+      refreshToken: getHash(refreshToken),
       userId: id,
     }
   }).catch(e => { console.error(e.message) });
@@ -35,7 +36,7 @@ export async function generateToken(id: string) {
 export async function deleteRefreshToken(refreshToken: string) {
   return await prisma.refreshToken.delete({
     where: {
-      token: getHash(refreshToken)
+      refreshToken: getHash(refreshToken)
     }
   })
 }
@@ -43,7 +44,7 @@ export async function deleteRefreshToken(refreshToken: string) {
 export async function checkValidToken(refreshToken: string) {
   const res = await prisma.refreshToken.findFirst({
     where: {
-      token: getHash(refreshToken)
+      refreshToken: getHash(refreshToken)
     }
   })
 
@@ -53,7 +54,7 @@ export async function checkValidToken(refreshToken: string) {
 export async function getIdFromToken(refreshToken: string) {
   const res = await prisma.refreshToken.findFirst({
     where: {
-      token: getHash(refreshToken)
+      refreshToken: getHash(refreshToken)
     }
   });
 

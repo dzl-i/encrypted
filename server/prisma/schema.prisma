@@ -50,8 +50,9 @@ model Dm {
 }
 
 model RefreshToken {
-    id     String @id @default(uuid())
-    token  String @unique
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId String
+    id           String @id @default(uuid())
+    accessToken  String @unique
+    refreshToken String @unique
+    user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId       String
 }

@@ -6,11 +6,17 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import { PrismaClient } from '@prisma/client';
 
 // Route Functions
 import { authRegister } from './auth/authRegister';
 import { authLogin } from './auth/authLogin';
 import { authRefresh } from './auth/authRefresh';
+import { getHash } from './helper/util';
+import { authLogout } from './auth/authLogout';
+
+
+const prisma = new PrismaClient()
 
 
 // Set up web app using JSON
@@ -91,6 +97,19 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/auth/logout', async (req: Request, res: Response) => {
+  try {
+    const { accessToken, refreshToken } = req.body;
+    if (! await authenticateToken(accessToken, refreshToken)) res.sendStatus(401);
+    await authLogout(refreshToken);
+
+    res.sendStatus(200);
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
 
 // Logging errors
 app.use(morgan('dev'));
@@ -153,14 +172,14 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
   next(); // Proceed to authenticateToken middleware
 }
 
-async function authenticateToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
-  if (token == null) return res.sendStatus(401)
+async function authenticateToken(accessToken: string, refreshToken: string) {
+  const result = await prisma.refreshToken.findFirst({
+    where: {
+      refreshToken: getHash(refreshToken)
+    }
+  });
 
-  jwt.verify(token, process.env.ACCESS_JWT_SECRET as string, (err) => {
-    console.log(err)
-    if (err) return res.sendStatus(403)
-    next()
-  })
+  if (result === null) throw { status: 401, message: "Refresh token does not exist." }
+
+  if (result.accessToken === getHash(accessToken)) return true; else return false;
 }

@@ -1,10 +1,12 @@
 "use client"
+import { NavBar } from "@/components/NavbarProtected";
 import { Button, Card, CardBody, Divider } from "@nextui-org/react";
 import Link from "next/link";
 
 export default function Page() {
   return (
     <main className="flex min-h-screen items-center justify-center dark">
+      <NavBar />
       <Card>
         <CardBody>
           <h1 style={{ color: "white", margin: "2rem" }}>This is where messages will be listed</h1>

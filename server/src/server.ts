@@ -99,7 +99,7 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
 
 app.post('/auth/logout', async (req: Request, res: Response) => {
   try {
-    const { accessToken, refreshToken } = req.body;
+    const { accessToken, refreshToken } = req.cookies;
     if (! await authenticateToken(accessToken, refreshToken)) res.sendStatus(401);
     await authLogout(refreshToken);
 

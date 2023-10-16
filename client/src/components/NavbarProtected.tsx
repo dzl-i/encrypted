@@ -14,7 +14,7 @@ export const NavBar = () => {
     try {
       setIsLoadingLogout(true);
 
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/logout`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {

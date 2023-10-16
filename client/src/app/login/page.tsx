@@ -35,7 +35,7 @@ export default function Page() {
       };
 
       // Send the userData to your API using fetch
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {

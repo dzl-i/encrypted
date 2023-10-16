@@ -32,7 +32,7 @@ export const NavBar = () => {
       }
 
       // Make a request to the /auth/refresh route to refresh the token
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/refresh`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
         method: "POST",
         credentials: "include",
         headers: {

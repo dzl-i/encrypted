@@ -47,7 +47,7 @@ export default function Page() {
       };
 
       // Send the userData to your API using fetch
-      const response = await fetch(`https://api.encrypted.denzeliskandar.com/auth/register`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: "POST",
         credentials: "include",
         headers: {

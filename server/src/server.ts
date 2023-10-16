@@ -31,6 +31,7 @@ app.use(cors({
 }));
 
 const PORT: number = parseInt(process.env.PORT || '3000');
+const isProduction: boolean = process.env.NODE_ENV === "production"
 
 
 // HEALTH CHECK ROUTE
@@ -49,8 +50,8 @@ app.post('/auth/register', async (req: Request, res: Response) => {
     const { accessToken, refreshToken, userId } = await authRegister(name, email, password, handle);
 
     // Assign cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+    res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+    res.cookie('refreshToken', refreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
@@ -67,8 +68,8 @@ app.post('/auth/login', async (req: Request, res: Response) => {
     const { accessToken, refreshToken, userId } = await authLogin(email, password);
 
     // Assign cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+    res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+    res.cookie('refreshToken', refreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
@@ -85,8 +86,8 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
     const token = await authRefresh(refreshToken);
 
     // Assign cookies
-    res.cookie('accessToken', token.accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
-    res.cookie('refreshToken', token.refreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+    res.cookie('accessToken', token.accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+    res.cookie('refreshToken', token.refreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
@@ -151,8 +152,8 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
               const { accessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
 
               // Set the new access and refresh tokens in cookies
-              res.cookie('accessToken', accessToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 900000 });
-              res.cookie('refreshToken', newRefreshToken, { httpOnly: true, path: "/", secure: true, sameSite: "none", maxAge: 7776000000 });
+              res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+              res.cookie('refreshToken', newRefreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
               // Continue with the request using the new access token
               req.headers['authorization'] = `Bearer ${accessToken}`;

@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
+import { Server } from 'http';
+import { Server as IoServer } from 'socket.io';
 
 // Route Functions
 import { authRegister } from './auth/authRegister';
@@ -23,6 +25,15 @@ const prisma = new PrismaClient()
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+const httpServer = new Server(app);
+const io = new IoServer(httpServer, {
+  cors: {
+    origin: ["http://localhost:3001", "https://encrypted-tau.vercel.app", "https://encrypted.denzeliskandar.com"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 // Use middleware that allows for access from other domains
 app.use(cors({
@@ -112,13 +123,38 @@ app.post('/auth/logout', async (req: Request, res: Response) => {
 });
 
 
+// SocketIO Connection
+io.on('connection', (socket) => {
+  console.log('a user connected:', socket.id);
+
+  // To handle group chat messages
+  socket.on('send_message', (data) => {
+    const { message } = data;
+    console.log(message)
+    // storeMessageInDB(message); // Placeholder function to store message in the database
+    io.emit('receive_message', data); // Send to all users including sender
+  });
+
+  // To handle private chat messages
+  socket.on('send_private_message', (data) => {
+    const { message, toUserId } = data;
+    // storeMessageInDB(message); // Placeholder function to store message in the database
+    socket.to(toUserId).emit('receive_private_message', data); // Send to a specific user
+  });
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected:', socket.id);
+  });
+});
+
+
 // Logging errors
 app.use(morgan('dev'));
 
 app.use(errorHandler());
 
 // Start server
-const server = app.listen(PORT, () => {
+const server = httpServer.listen(PORT, () => {
   console.log(`⚡️ Server listening on port ${process.env.PORT || '3000'}`);
 });
 

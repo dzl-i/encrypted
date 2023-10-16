@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "middleware-http-errors": "^0.1.2",
     "morgan": "^1.10.0",
+    "socket.io": "^4.7.2",
     "sync-request": "^6.1.0",
     "ts-node": "^10.9.1",
     "validator": "^13.11.0"

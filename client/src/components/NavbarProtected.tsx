@@ -44,8 +44,8 @@ export const NavBar = () => {
       </NavbarBrand>
       <NavbarContent justify="end">
         <NavbarItem className="hidden lg:flex">
-          <Button color="primary" variant="solid" onClick={() => setShowLogoutConfirmation(true)} disabled={isLoadingLogout}>
-            {isLoadingLogout ? <Spinner size="md" color="default" /> : "Log Out"}
+          <Button color="primary" variant="solid" onClick={() => setShowLogoutConfirmation(true)}>
+            Log Out
           </Button>
         </NavbarItem>
       </NavbarContent>
@@ -54,6 +54,7 @@ export const NavBar = () => {
         <LogoutConfirmation
           onConfirm={handleLogoutClick}
           onCancel={() => setShowLogoutConfirmation(false)}
+          isLoadingLogout={isLoadingLogout}
         />
       )}
     </Navbar>

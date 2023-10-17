@@ -8,13 +8,12 @@ import { getHash } from "./util";
 const prisma = new PrismaClient();
 
 export async function generateToken(id: string) {
-  // Create the token based on the user's id
-  const uuid = crypto.randomUUID();
-  const accessToken: string = jwt.sign({ uuid }, process.env.ACCESS_JWT_SECRET as string, {
+  // Create the token based on the user's id and/or a random uuid
+  const accessToken: string = jwt.sign({ uuid: crypto.randomUUID(), userId: id }, process.env.ACCESS_JWT_SECRET as string, {
     expiresIn: "30m"
   });
 
-  const refreshToken: string = jwt.sign({ uuid }, process.env.REFRESH_JWT_SECRET as string, {
+  const refreshToken: string = jwt.sign({ uuid: crypto.randomUUID() }, process.env.REFRESH_JWT_SECRET as string, {
     expiresIn: "90d"
   });
 

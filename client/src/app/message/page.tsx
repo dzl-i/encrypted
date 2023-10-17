@@ -12,7 +12,7 @@ export default function Page() {
   const [socket, setSocket] = useState<Socket | null>(null); // Add this state
 
   useEffect(() => {
-    const socketConnection = io("http://localhost:3000"); // Instantiate socket inside useEffect
+    const socketConnection = io(`${process.env.NEXT_PUBLIC_API_URL}`); // Instantiate socket inside useEffect
     setSocket(socketConnection); // Set the socket to state
 
     socketConnection.on('receive_message', (data) => {

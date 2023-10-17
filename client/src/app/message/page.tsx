@@ -11,6 +11,13 @@ export default function Page() {
   const [chat, setChat] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null); // Add this state
 
+  const handleKeyDown = (e) => {
+    console.log('Key pressed:', e.key);
+    if (e.key === 'Enter' && message !== "") {
+      sendMessage(e);
+    }
+  };
+
   useEffect(() => {
     const socketConnection = io(`${process.env.NEXT_PUBLIC_API_URL}`); // Instantiate socket inside useEffect
     setSocket(socketConnection); // Set the socket to state
@@ -37,7 +44,7 @@ export default function Page() {
     <main className="flex min-h-screen items-center justify-center dark">
       <NavBar />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '5%' }}>
-        <Card style={{ width: '400px' }}>
+        <Card style={{ width: '400px', padding: "0.5rem" }}>
           <h3>Chatroom</h3>
           <div style={{ height: '300px', overflowY: 'scroll' }}>
             {chat.map((msg, idx) => (
@@ -45,7 +52,7 @@ export default function Page() {
             ))}
           </div>
           <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-            <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." />
+            <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." onKeyDown={handleKeyDown} />
             <Button onClick={sendMessage}>Send</Button>
           </div>
         </Card>

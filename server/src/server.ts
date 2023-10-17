@@ -3,7 +3,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import errorHandler from 'middleware-http-errors';
 import cors from 'cors';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
@@ -16,6 +16,7 @@ import { authLogin } from './auth/authLogin';
 import { authRefresh } from './auth/authRefresh';
 import { getHash } from './helper/util';
 import { authLogout } from './auth/authLogout';
+import { dmCreate } from './dm/dmCreate';
 
 
 const prisma = new PrismaClient()
@@ -109,13 +110,28 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/auth/logout', async (req: Request, res: Response) => {
+app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
     const { accessToken, refreshToken } = req.cookies;
-    if (! await authenticateToken(accessToken, refreshToken)) res.sendStatus(401);
     await authLogout(refreshToken);
 
     res.sendStatus(200);
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
+
+// DM ROUTES
+app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { accessToken } = req.cookies;
+    const { userIds, name } = req.body;
+
+    const { dmId } = await dmCreate(accessToken, userIds, name);
+
+    res.status(200).json({ dmId: dmId });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -165,58 +181,65 @@ process.on('SIGINT', () => {
 
 /* ---------------------------------------- HELPER FUNCTION ----------------------------------------  */
 async function silentTokenRefresh(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  console.log(token)
+  const { accessToken, refreshToken } = req.cookies;
 
-  // Check if the token exists
-  if (!token) {
-    return next(); // Proceed to authenticateToken middleware
-  }
+  if (!accessToken) return res.status(401).json({ error: "No access token provided." });
 
   try {
-    // Verify the access token
-    jwt.verify(token, process.env.ACCESS_JWT_SECRET as string, async (err) => {
-      if (err) {
-        if (err.name === 'TokenExpiredError') {
-          // Token has expired; try to refresh it
-          const refreshToken = req.cookies.refreshToken;
+    jwt.verify(accessToken, process.env.ACCESS_JWT_SECRET as string);
 
-          if (refreshToken) {
-            try {
-              // Call authRefresh to refresh tokens
-              const { accessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
+    // If token verifies without any issues - continue
+    return next();
+  } catch (err: any) {
+    if (err.name === 'TokenExpiredError') {
+      // Refresh expired token
+      if (refreshToken) {
+        try {
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
 
-              // Set the new access and refresh tokens in cookies
-              res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
-              res.cookie('refreshToken', newRefreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
+          // Set the new access and refresh tokens in cookies
+          res.cookie('accessToken', newAccessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+          res.cookie('refreshToken', newRefreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
-              // Continue with the request using the new access token
-              req.headers['authorization'] = `Bearer ${accessToken}`;
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        } else {
-          console.error(err);
+          return next();
+        } catch (error) {
+          console.error(error);
+          return res.status(401).json({ error: "Refresh token is invalid or expired." });
         }
+      } else {
+        return res.status(401).json({ error: "Refresh token not provided." });
       }
-    });
-  } catch (error) {
-    console.error(error);
-  }
+    }
 
-  next(); // Proceed to authenticateToken middleware
+    // If there's an error other than token expiration, send a 403 Forbidden.
+    return res.status(403).json({ error: "Invalid access token." });
+  }
 }
 
-async function authenticateToken(accessToken: string, refreshToken: string) {
-  const result = await prisma.refreshToken.findFirst({
-    where: {
-      refreshToken: getHash(refreshToken)
+async function authenticateToken(req: Request, res: Response, next: NextFunction) {
+  const { accessToken } = req.cookies;
+
+  if (!accessToken) return res.status(401).json({ error: "No access token provided." });
+
+  try {
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_JWT_SECRET as string) as JwtPayload;
+    if (decoded && decoded.userId) {
+      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+
+      if (!user) {
+        return res.status(403).json({ error: "User not found." });
+      }
+
+      if (user.isBlocked) {
+        return res.status(403).json({ error: "User is blocked." });
+      }
+
+      res.locals.userId = decoded.userId;
+      next();
+    } else {
+      res.status(403).json({ error: "Invalid access token." });
     }
-  });
-
-  if (result === null) throw { status: 401, message: "Refresh token does not exist." }
-
-  if (result.accessToken === getHash(accessToken)) return true; else return false;
+  } catch (err) {
+    res.status(403).json({ error: "Invalid access token." });
+  }
 }

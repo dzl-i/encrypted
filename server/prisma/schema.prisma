@@ -19,8 +19,8 @@ model User {
     remainingLoginAttempts Int            @default(3)
     isBlocked              Boolean        @default(false)
     messages               Message[]
-    memberOfGroups         Group[]
-    memberOfDms            Dm[]
+    memberOfDms            Dm[]           @relation("DmMembers")
+    ownerOfDms             Dm[]           @relation("DmOwners")
     tokens                 RefreshToken[]
 }
 
@@ -31,22 +31,15 @@ model Message {
     message  String
     timeSent DateTime @default(now())
     dm       Dm?      @relation(fields: [dmId], references: [id])
-    dmId     String?
-    Group    Group?   @relation(fields: [groupId], references: [id])
-    groupId  String?
-}
-
-model Group {
-    id        String    @id @default(uuid())
-    groupName String
-    messages  Message[]
-    members   User[]
+    dmId     String
 }
 
 model Dm {
     id       String    @id @default(uuid())
+    dmName   String
     messages Message[]
-    members  User[]
+    owners   User[]    @relation("DmOwners")
+    members  User[]    @relation("DmMembers")
 }
 
 model RefreshToken {

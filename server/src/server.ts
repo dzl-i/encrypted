@@ -112,7 +112,7 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
 
 app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { accessToken, refreshToken } = req.cookies;
+    const refreshToken = req.cookies.refreshToken;
     await authLogout(refreshToken);
 
     res.sendStatus(200);
@@ -126,10 +126,10 @@ app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Requ
 // DM ROUTES
 app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { accessToken } = req.cookies;
+    const userId = res.locals.userId;
     const { userIds, name } = req.body;
 
-    const { dmId } = await dmCreate(accessToken, userIds, name);
+    const { dmId } = await dmCreate(userId, userIds, name);
 
     res.status(200).json({ dmId: dmId });
   } catch (error: any) {
@@ -230,7 +230,7 @@ async function authenticateToken(req: Request, res: Response, next: NextFunction
         return res.status(403).json({ error: "User not found." });
       }
 
-      if (user.isBlocked) {
+      if (user.remainingLoginAttempts <= 0) {
         return res.status(403).json({ error: "User is blocked." });
       }
 

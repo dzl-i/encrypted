@@ -8,19 +8,24 @@ interface JwtPayload extends jwt.JwtPayload {
   uuid: string;
 }
 
-export async function dmCreate(accessToken: string, userIds: string[], name: string) {
-  const decodedToken = jwt.verify(accessToken, process.env.ACCESS_JWT_SECRET as string) as JwtPayload;
-  const userId = decodedToken.userId;
+export async function dmCreate(userId: string, userIds: string[], name: string) {
+  const owner = await getUserById(userId);
+  if (owner === null) throw { status: 400, message: "Invalid userId." }
 
-  // Error checking
+  // Name of the DM is initially a concatenation of all user handles
+  let dmNames = [owner.handle];
+
+  // Error checking and retrieving user handles
   for (const uId of userIds) {
-    const res = await getUserById(uId);
-    console.log(uId, res)
-    if (res === null) throw { status: 400, message: "Invalid userId." }
+    const user = await getUserById(uId);
+    if (user === null) throw { status: 400, message: "Invalid userId." }
+    dmNames.push(user.handle);
   }
 
+  const dmName = dmNames.sort().join(", ");
+
   // Create the DM
-  const dm = await createDm(userId, name);
+  const dm = await createDm(userId, dmName);
 
   // Add the users to the DM
   for (const uId of userIds) {

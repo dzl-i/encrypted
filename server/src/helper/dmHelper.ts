@@ -31,3 +31,18 @@ export async function addUserToDm(dmId: string, userId: string) {
     }
   })
 }
+
+export async function getUserDms(userId: string) {
+  const userDms = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      memberOfDms: true,
+      ownerOfDms: true,
+    },
+  });
+
+  if (userDms === null) throw { status: 400, message: "Invalid userId." }
+  return userDms;
+}

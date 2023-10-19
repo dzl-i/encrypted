@@ -17,6 +17,7 @@ import { authRefresh } from './auth/authRefresh';
 import { getHash } from './helper/util';
 import { authLogout } from './auth/authLogout';
 import { dmCreate } from './dm/dmCreate';
+import { dmList } from './dm/dmList';
 
 
 const prisma = new PrismaClient()
@@ -127,11 +128,23 @@ app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Requ
 app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = res.locals.userId;
-    const { userIds, name } = req.body;
+    const { userIds } = req.body;
 
-    const { dmId } = await dmCreate(userId, userIds, name);
+    const { dmId } = await dmCreate(userId, userIds);
 
     res.status(200).json({ dmId: dmId });
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
+app.get('/dm/list', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = res.locals.userId;
+    const dms = await dmList(userId);
+
+    res.status(200).json({ dms: dms });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -141,21 +154,16 @@ app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Reques
 
 // SocketIO Connection
 io.on('connection', (socket) => {
-  console.log('a user connected:', socket.id);
+  console.log('user connected:', socket.id);
 
-  // To handle group chat messages
-  socket.on('send_message', (data) => {
-    const { message } = data;
-    console.log(message)
-    // storeMessageInDB(message); // Placeholder function to store message in the database
-    io.emit('receive_message', data); // Send to all users including sender
+  socket.on('join', (dmId) => {
+    socket.join(dmId);  // The user joins a room named after the DM's ID.
+    console.log(`User joined DM: ${dmId}`);
   });
 
-  // To handle private chat messages
-  socket.on('send_private_message', (data) => {
-    const { message, toUserId } = data;
-    // storeMessageInDB(message); // Placeholder function to store message in the database
-    socket.to(toUserId).emit('receive_private_message', data); // Send to a specific user
+  socket.on('send_dm_message', (dmId, message) => {
+    console.log(dmId, message)
+    io.to(dmId).emit('receive_dm_message', message);  // Sends message only to users in the DM.
   });
 
   socket.on('disconnect', () => {
@@ -183,7 +191,7 @@ process.on('SIGINT', () => {
 async function silentTokenRefresh(req: Request, res: Response, next: NextFunction) {
   const { accessToken, refreshToken } = req.cookies;
 
-  if (!accessToken) return res.status(401).json({ error: "No access token provided." });
+  if (!accessToken && !refreshToken) return res.status(401).json({ error: "No access token and refresh token provided." });
 
   try {
     jwt.verify(accessToken, process.env.ACCESS_JWT_SECRET as string);
@@ -191,11 +199,13 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
     // If token verifies without any issues - continue
     return next();
   } catch (err: any) {
-    if (err.name === 'TokenExpiredError') {
+    if (err.name === 'TokenExpiredError' || !accessToken) {
       // Refresh expired token
       if (refreshToken) {
         try {
           const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await authRefresh(refreshToken);
+
+          res.locals.newAccessToken = newAccessToken;
 
           // Set the new access and refresh tokens in cookies
           res.cookie('accessToken', newAccessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
@@ -217,7 +227,8 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
 }
 
 async function authenticateToken(req: Request, res: Response, next: NextFunction) {
-  const { accessToken } = req.cookies;
+  const accessToken = res.locals.newAccessToken || req.cookies.accessToken;
+  console.log(accessToken)
 
   if (!accessToken) return res.status(401).json({ error: "No access token provided." });
 

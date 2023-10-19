@@ -5,9 +5,7 @@ export async function dmList(userId: string) {
   const user = await getUserById(userId);
 
   const res = await getUserDms(userId);
-  const userDms = res.memberOfDms.concat(res.ownerOfDms);
+  const dms = res.memberOfDms.concat(res.ownerOfDms);
 
-  return {
-    dms: userDms
-  };
+  return dms;
 }

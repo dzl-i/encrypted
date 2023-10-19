@@ -3,12 +3,7 @@ import jwt from "jsonwebtoken";
 import { getUserById } from "../helper/userHelper";
 import { addUserToDm, createDm } from "../helper/dmHelper";
 
-interface JwtPayload extends jwt.JwtPayload {
-  userId: string;
-  uuid: string;
-}
-
-export async function dmCreate(userId: string, userIds: string[], name: string) {
+export async function dmCreate(userId: string, userIds: string[]) {
   const owner = await getUserById(userId);
   if (owner === null) throw { status: 400, message: "Invalid userId." }
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Button, Input, Card } from '@nextui-org/react';
+import { Button, Input, Card, User, Divider } from '@nextui-org/react';
 import io, { Socket } from 'socket.io-client';
 
 import { NavBar } from "@/components/NavbarProtected";
@@ -50,6 +50,13 @@ export default function Page() {
     }
   }, [activeDm, socket]);
 
+  useEffect(() => {
+    const lastMessage = document.querySelector("#lastMessage");
+    if (lastMessage) {
+      lastMessage.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   const sendMessage = (e) => {
     e.preventDefault();
     if (message !== "" && socket && activeDm) {
@@ -65,22 +72,32 @@ export default function Page() {
   return (
     <main className="flex flex-col min-h-screen dark">
       <NavBar />
-
       <div className="flex flex-row flex-grow mt-20">
         <DmListSidebar activeDm={activeDm} onDmClick={handleSetActiveDm} />
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem" }}>
-            <h3>Chatroom</h3>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem", borderRadius: 0 }}>
+            <Card shadow='none' style={{ display: "flex", flexDirection: "row", padding: "1rem" }}>
+              <User
+                name="John Smith"
+                description="@mynameisjohn"
+                avatarProps={{
+                  src: "https://kansai-resilience-forum.jp/wp-content/uploads/2019/02/IAFOR-Blank-Avatar-Image-1.jpg"
+                }}
+              />
+            </Card>
+            <Divider />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 240px)" }}>
               <div style={{ flex: 1, overflowY: 'scroll' }}>
                 {messages.map((msg, idx) => (
-                  <div key={idx}>{msg}</div>
+                  <div key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
+                    {msg}
+                  </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <Card style={{ display: 'flex', flexDirection: "row", gap: '15px', position: "fixed", left: "20%", bottom: 0, width: "80%", padding: "1rem", backgroundColor: "#202020", borderRadius: 0 }}>
                 <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." onKeyDown={handleKeyDown} />
                 <Button onClick={sendMessage}>Send</Button>
-              </div>
+              </Card>
             </div>
           </Card>
         </div>

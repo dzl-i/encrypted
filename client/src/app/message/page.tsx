@@ -12,9 +12,14 @@ export default function Page() {
   const [activeDm, setActiveDm] = useState(''); // Currently viewed DM
 
   const [message, setMessage] = useState(''); // message input
-  const [messages, setMessages] = useState<string[]>([]); // messages for the current DM
+  const [messages, setMessages] = useState<{
+    id: string;
+    senderId: string;
+    message: string;
+    timeSent: Date;
+    dmId: string;
+  }[]>([]); // messages for the current DM
 
-  const [chat, setChat] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null); // Add this state
 
   const handleKeyDown = (e) => {
@@ -24,14 +29,12 @@ export default function Page() {
     }
   };
 
+  // Handling Socket.io
   useEffect(() => {
-    const socketConnection = io(`${process.env.NEXT_PUBLIC_API_URL}`);
-    setSocket(socketConnection);
-
-    socketConnection.on('receive_message', (data) => {
-      console.log("Received message:", data);
-      setChat(prevChat => [...prevChat, data.message]);
+    const socketConnection = io(`${process.env.NEXT_PUBLIC_API_URL}`, {
+      withCredentials: true
     });
+    setSocket(socketConnection);
 
     socketConnection.on('receive_dm_message', (receivedMessage) => {
       console.log(receivedMessage)
@@ -43,13 +46,22 @@ export default function Page() {
     };
   }, []);
 
-  useEffect(() => {
-    // When the active DM changes, join the new DM room and leave the previous room.
-    if (socket && activeDm) {
-      socket.emit('join', activeDm);
+  // Sending the message
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (message !== "" && socket && activeDm) {
+      socket.emit('send_dm_message', activeDm, message, (acknowledgedMessage) => {
+        // The server should send back the saved message object as acknowledgement
+        if (acknowledgedMessage && acknowledgedMessage.id) {
+          setMessages((prevMessages) => [...prevMessages, acknowledgedMessage]);
+        }
+      });
+      setMessage('');
     }
-  }, [activeDm, socket]);
+  };
 
+
+  // Automatically scroll to newest message
   useEffect(() => {
     const lastMessage = document.querySelector("#lastMessage");
     if (lastMessage) {
@@ -57,13 +69,33 @@ export default function Page() {
     }
   }, [messages]);
 
-  const sendMessage = (e) => {
-    e.preventDefault();
-    if (message !== "" && socket && activeDm) {
-      socket.emit('send_dm_message', activeDm, message);
-      setMessage('');
+  // When the active DM changes, join the new DM room and leave the previous room.
+  useEffect(() => {
+    if (socket && activeDm) {
+      socket.emit('join', activeDm);
+
+      // Fetch previous messages of the DM
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/messages`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dmId: activeDm
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.messages) {
+            setMessages(data.messages);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching messages for DM", activeDm, error);
+        });
     }
-  };
+  }, [activeDm, socket]);
 
   const handleSetActiveDm = (id) => {
     setActiveDm(id);
@@ -90,7 +122,7 @@ export default function Page() {
               <div style={{ flex: 1, overflowY: 'scroll' }}>
                 {messages.map((msg, idx) => (
                   <div key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
-                    {msg}
+                    {msg.message}
                   </div>
                 ))}
               </div>

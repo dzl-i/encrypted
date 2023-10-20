@@ -19,8 +19,7 @@ model User {
     remainingLoginAttempts Int            @default(3)
     isBlocked              Boolean        @default(false)
     messages               Message[]
-    memberOfDms            Dm[]           @relation("DmMembers")
-    ownerOfDms             Dm[]           @relation("DmOwners")
+    memberOfDms            Dm[]
     tokens                 RefreshToken[]
 }
 
@@ -36,10 +35,9 @@ model Message {
 
 model Dm {
     id       String    @id @default(uuid())
-    dmName   String
+    dmName   String    @unique
     messages Message[]
-    owners   User[]    @relation("DmOwners")
-    members  User[]    @relation("DmMembers")
+    members  User[]
 }
 
 model RefreshToken {

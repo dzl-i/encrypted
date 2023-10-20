@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { Server } from 'http';
 import { Server as IoServer } from 'socket.io';
+import { parse } from 'cookie';
 
 // Route Functions
 import { authRegister } from './auth/authRegister';
@@ -18,6 +19,9 @@ import { getHash } from './helper/util';
 import { authLogout } from './auth/authLogout';
 import { dmCreate } from './dm/dmCreate';
 import { dmList } from './dm/dmList';
+import { dmMessages } from './dm/dmMessages';
+import { storeMessage } from './helper/messageHelper';
+import { checkAuthorisation } from './helper/dmHelper';
 
 
 const prisma = new PrismaClient()
@@ -128,9 +132,9 @@ app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Requ
 app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = res.locals.userId;
-    const { userIds } = req.body;
+    const { userHandles } = req.body;
 
-    const { dmId } = await dmCreate(userId, userIds);
+    const { dmId } = await dmCreate(userId, userHandles);
 
     res.status(200).json({ dmId: dmId });
   } catch (error: any) {
@@ -151,6 +155,18 @@ app.get('/dm/list', silentTokenRefresh, authenticateToken, async (req: Request, 
   }
 });
 
+app.post('/dm/messages', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const dmId = req.body.dmId;
+    const messages = await dmMessages(dmId);
+
+    res.status(200).json({ messages: messages });
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
 
 // SocketIO Connection
 io.on('connection', (socket) => {
@@ -161,14 +177,40 @@ io.on('connection', (socket) => {
     console.log(`User joined DM: ${dmId}`);
   });
 
-  socket.on('send_dm_message', (dmId, message) => {
-    console.log(dmId, message)
-    io.to(dmId).emit('receive_dm_message', message);  // Sends message only to users in the DM.
+  socket.on('send_dm_message', async (dmId, message, callback) => {
+    const userId = socket.data.userId;
+    console.log(userId, dmId, message);
+
+    // Storing the message and getting the stored message object
+    const storedMessage = await storeMessage(userId, message, dmId);
+
+    socket.to(dmId).emit('receive_dm_message', storedMessage); // Sends message only to users in the DM.
+
+    // Return the stored message as acknowledgement
+    callback(storedMessage);
   });
 
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
   });
+});
+
+io.use((socket, next) => {
+  const rawCookies = socket.request.headers.cookie;
+  const parsedCookies = parse(rawCookies || '');
+
+  const accessToken = parsedCookies['accessToken'];
+
+  try {
+    // Verifying the token
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_JWT_SECRET as string) as JwtPayload;
+    socket.data.userId = decoded.userId;
+
+    next();
+  } catch (err) {
+    // Handling token verification errors
+    next(new Error('Authentication error'));
+  }
 });
 
 
@@ -228,7 +270,6 @@ async function silentTokenRefresh(req: Request, res: Response, next: NextFunctio
 
 async function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const accessToken = res.locals.newAccessToken || req.cookies.accessToken;
-  console.log(accessToken)
 
   if (!accessToken) return res.status(401).json({ error: "No access token provided." });
 

@@ -18,3 +18,11 @@ export async function getUserByEmail(email: string) {
     }
   });
 }
+
+export async function getUserByHandle(handle: string) {
+  return await prisma.user.findFirst({
+    where: {
+      handle: handle
+    }
+  });
+}

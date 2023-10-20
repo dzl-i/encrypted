@@ -9,7 +9,7 @@ export async function createDm(id: string, name: string) {
   return await prisma.dm.create({
     data: {
       dmName: name,
-      owners: {
+      members: {
         connect: [user]
       }
     }
@@ -39,10 +39,56 @@ export async function getUserDms(userId: string) {
     },
     select: {
       memberOfDms: true,
-      ownerOfDms: true,
     },
   });
 
-  if (userDms === null) throw { status: 400, message: "Invalid userId." }
+  if (userDms === null) throw { status: 400, message: "Invalid userId." };
   return userDms;
+}
+
+export async function getDmMessages(dmId: string) {
+  const dmMessages = await prisma.dm.findUnique({
+    where: {
+      id: dmId
+    },
+    select: {
+      messages: {
+        orderBy: {
+          timeSent: "asc"
+        }
+      }
+    }
+  });
+
+  if (dmMessages === null) throw { status: 400, message: "Invalid dmId." };
+  return dmMessages;
+}
+
+export async function checkAuthorisation(userId: string, dmId: string) {
+  const dmMembers = await prisma.dm.findUnique({
+    where: {
+      id: dmId
+    },
+    select: {
+      members: true
+    }
+  });
+
+  if (dmMembers === null) throw { status: 400, message: "Invalid dmId." };
+
+  for (const user of dmMembers.members) {
+    if (user.id === userId) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export async function findDm(dmName: string) {
+  return await prisma.dm.findUnique({
+    where: {
+      dmName: dmName
+    }
+  });
 }

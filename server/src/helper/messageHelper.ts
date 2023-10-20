@@ -11,5 +11,5 @@ export async function storeMessage(userId: string, message: string, dmId: string
     }
   });
 
-  return res.id;
+  return res;
 }

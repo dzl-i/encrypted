@@ -1,23 +1,28 @@
 import jwt from "jsonwebtoken";
 
-import { getUserById } from "../helper/userHelper";
-import { addUserToDm, createDm } from "../helper/dmHelper";
+import { getUserByHandle, getUserById } from "../helper/userHelper";
+import { addUserToDm, createDm, findDm } from "../helper/dmHelper";
 
-export async function dmCreate(userId: string, userIds: string[]) {
+export async function dmCreate(userId: string, userHandles: string[]) {
   const owner = await getUserById(userId);
   if (owner === null) throw { status: 400, message: "Invalid userId." }
 
   // Name of the DM is initially a concatenation of all user handles
   let dmNames = [owner.handle];
+  let userIds = [];
 
   // Error checking and retrieving user handles
-  for (const uId of userIds) {
-    const user = await getUserById(uId);
-    if (user === null) throw { status: 400, message: "Invalid userId." }
-    dmNames.push(user.handle);
+  for (const uHandle of userHandles) {
+    const user = await getUserByHandle(uHandle);
+    if (user === null) throw { status: 400, message: "Invalid username." }
+    dmNames.push(uHandle);
+    userIds.push(user.id);
   }
 
   const dmName = dmNames.sort().join(", ");
+
+  const dmFind = await findDm(dmName);
+  if (dmFind !== null) return { dmId: dmFind.id };
 
   // Create the DM
   const dm = await createDm(userId, dmName);

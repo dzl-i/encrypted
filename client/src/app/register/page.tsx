@@ -34,7 +34,7 @@ export default function Page() {
     setUsername(e.target.value);
   };
 
-  const handleSignIn = async () => {
+  const handleSignUp = async () => {
     try {
       setIsLoading(true);
 
@@ -57,10 +57,6 @@ export default function Page() {
       });
 
       if (response.ok) {
-        // const data = await response.json();
-
-        // TODO: setAuth
-
         // Redirect to the "/message" route upon successful sign-up
         router.push("/message");
       } else {
@@ -76,17 +72,23 @@ export default function Page() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSignUp();
+    }
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center dark">
       <NavBar />
       <Card style={{ width: "500px", padding: "2rem", border: "0.1rem solid rgba(255, 255, 255, 0.4)", marginTop: "80px" }} className="flex items-center flex-col">
         <CardBody className="flex w-full flex-wrap md:flex-nowrap mb-6 md:mb-0 gap-5 items-center">
-          <Input isRequired size="md" type="name" label="Full Name" placeholder="Enter your full name" onChange={handleNameChange} />
-          <Input isRequired size="md" type="email" label="Email" placeholder="Enter your email" onChange={handleEmailChange} />
-          <Input isRequired size="md" type="password" label="Password" placeholder="Enter your password" onChange={handlePasswordChange} />
-          <Input isRequired size="md" type="" label="Username" placeholder="Enter your username" onChange={handleUsernameChange} />
+          <Input isRequired size="md" type="name" label="Full Name" placeholder="Enter your full name" onChange={handleNameChange} onKeyDown={handleKeyDown} />
+          <Input isRequired size="md" type="email" label="Email" placeholder="Enter your email" onChange={handleEmailChange} onKeyDown={handleKeyDown} />
+          <Input isRequired size="md" type="password" label="Password" placeholder="Enter your password" onChange={handlePasswordChange} onKeyDown={handleKeyDown} />
+          <Input isRequired size="md" type="" label="Username" placeholder="Enter your username" onChange={handleUsernameChange} onKeyDown={handleKeyDown} />
           <ErrorMessage message={errorMessage} onClose={() => setErrorMessage(null)} />
-          <Button color="primary" variant="solid" style={{ width: "70%" }} onClick={handleSignIn} disabled={isLoading}>
+          <Button color="primary" variant="solid" style={{ width: "70%" }} onClick={handleSignUp} disabled={isLoading}>
             {isLoading ? <Spinner size="md" color="default" /> : "Sign Up"}
           </Button>
         </CardBody>

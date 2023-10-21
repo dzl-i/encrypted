@@ -22,7 +22,7 @@ export async function dmCreate(userId: string, userHandles: string[]) {
   const dmName = dmNames.sort().join(", ");
 
   const dmFind = await findDm(dmName);
-  if (dmFind !== null) return { dmId: dmFind.id };
+  if (dmFind !== null) return dmFind;
 
   // Create the DM
   const dm = await createDm(userId, dmName);
@@ -32,7 +32,5 @@ export async function dmCreate(userId: string, userHandles: string[]) {
     await addUserToDm(dm.id, uId);
   }
 
-  return {
-    dmId: dm.id
-  }
+  return dm;
 }

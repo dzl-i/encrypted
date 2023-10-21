@@ -22,6 +22,7 @@ import { dmList } from './dm/dmList';
 import { dmMessages } from './dm/dmMessages';
 import { storeMessage } from './helper/messageHelper';
 import { checkAuthorisation } from './helper/dmHelper';
+import { getUserByHandle } from './helper/userHelper';
 
 
 const prisma = new PrismaClient()
@@ -134,9 +135,16 @@ app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Reques
     const userId = res.locals.userId;
     const { userHandles } = req.body;
 
-    const { dmId } = await dmCreate(userId, userHandles);
+    const dm = await dmCreate(userId, userHandles);
 
-    res.status(200).json({ dmId: dmId });
+    const dmData = {
+      id: dm.id,
+      dmName: dm.dmName, // You can adjust this based on your DM model structure
+    };
+
+    io.emit('new_dm_created', dmData);
+
+    res.status(200).json({ dmId: dm.id });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

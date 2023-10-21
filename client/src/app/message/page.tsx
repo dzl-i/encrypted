@@ -6,9 +6,15 @@ import io, { Socket } from 'socket.io-client';
 
 import { NavBar } from "@/components/NavbarProtected";
 import { DmListSidebar } from '@/components/DmListSidebar';
+import { DmCreate } from '@/components/DmCreate';
+
+type Dm = {
+  id: string;
+  dmName: string;
+};
 
 export default function Page() {
-  // const [dms, setDms] = useState([]); // List of DMs
+  const [dms, setDms] = useState<Dm[]>([]);
   const [activeDm, setActiveDm] = useState(''); // Currently viewed DM
 
   const [message, setMessage] = useState(''); // message input
@@ -22,8 +28,10 @@ export default function Page() {
 
   const [socket, setSocket] = useState<Socket | null>(null); // Add this state
 
+  const [showDmCreate, setShowDmCreate] = useState(false);
+  const [trigger, setTrigger] = useState(false);
+
   const handleKeyDown = (e) => {
-    console.log('Key pressed:', e.key);
     if (e.key === 'Enter' && message !== "") {
       sendMessage(e);
     }
@@ -39,6 +47,11 @@ export default function Page() {
     socketConnection.on('receive_dm_message', (receivedMessage) => {
       console.log(receivedMessage)
       setMessages((prevMessages) => [...prevMessages, receivedMessage]);
+    });
+
+    // Handle new_dm_created event
+    socketConnection.on('new_dm_created', () => {
+      setTrigger(prev => !prev);
     });
 
     return () => {
@@ -59,7 +72,6 @@ export default function Page() {
       setMessage('');
     }
   };
-
 
   // Automatically scroll to newest message
   useEffect(() => {
@@ -97,15 +109,53 @@ export default function Page() {
     }
   }, [activeDm, socket]);
 
+  useEffect(() => {
+    const fetchDms = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/list`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        setDms(prevDms => {
+          if (JSON.stringify(prevDms) !== JSON.stringify(data.dms)) {
+            return data.dms;
+          }
+          return prevDms;
+        });
+      } catch (error) {
+        console.error("Error fetching DMs:", error);
+      }
+    };
+
+    fetchDms();
+  }, [dms, activeDm, trigger]);
+
   const handleSetActiveDm = (id) => {
     setActiveDm(id);
   };
 
   return (
     <main className="flex flex-col min-h-screen dark">
+      {showDmCreate && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0,
+          width: '100%', height: '100%',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <DmCreate onClose={() => setShowDmCreate(false)} onCreateDm={(dmId) => setActiveDm(dmId)} />
+        </div>
+      )}
+
       <NavBar />
       <div className="flex flex-row flex-grow mt-20">
-        <DmListSidebar activeDm={activeDm} onDmClick={handleSetActiveDm} />
+        <DmListSidebar activeDm={activeDm} onDmClick={handleSetActiveDm} onNewDmClick={() => setShowDmCreate(true)} dms={dms} />
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem", borderRadius: 0 }}>
             <Card shadow='none' style={{ display: "flex", flexDirection: "row", padding: "1rem" }}>
@@ -118,7 +168,7 @@ export default function Page() {
               />
             </Card>
             <Divider />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 240px)" }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 250px)", marginTop: "10px" }}>
               <div style={{ flex: 1, overflowY: 'scroll' }}>
                 {messages.map((msg, idx) => (
                   <div key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>

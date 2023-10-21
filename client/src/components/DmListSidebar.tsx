@@ -1,5 +1,4 @@
 import { Button, Card, CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, User } from '@nextui-org/react';
-import { useState, useEffect } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { BsFillPersonFill } from 'react-icons/bs';
 import { HiMiniUserGroup } from 'react-icons/hi2';
@@ -12,37 +11,11 @@ type Dm = {
 type DmListSidebarProps = {
   activeDm: string;
   onDmClick: (id: string) => void;
+  onNewDmClick: () => void;
+  dms: Dm[];
 };
 
-export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClick }) => {
-  const [dms, setDms] = useState<Dm[]>([]);
-
-  useEffect(() => {
-    const fetchDms = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/list`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-        setDms(prevDms => {
-          if (JSON.stringify(prevDms) !== JSON.stringify(data.dms)) {
-            return data.dms;
-          }
-          return prevDms;
-        });
-      } catch (error) {
-        console.error("Error fetching DMs:", error);
-      }
-    };
-
-    fetchDms();
-  }, [dms]);
-
+export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClick, onNewDmClick, dms }) => {
   return (
     <Card style={{ width: '20%', maxHeight: "calc(100vh - 80px)", backgroundColor: "#151515", overflowY: 'scroll', borderRadius: 0 }}>
       <div style={{ display: "flex", flexDirection: "row", backgroundColor: "#151515", border: 0, alignItems: "center", padding: "1.5rem", height: "50px", width: "100%", justifyContent: 'space-between', position: "sticky", top: 0, zIndex: 10 }}>
@@ -54,7 +27,7 @@ export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClic
             </button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Static Actions">
-            <DropdownItem style={{ color: "whitesmoke" }}>
+            <DropdownItem onClick={onNewDmClick} style={{ color: "whitesmoke" }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <BsFillPersonFill style={{ marginRight: '8px', fontSize: "1.4rem" }} />
                 <span>New Direct Message</span>

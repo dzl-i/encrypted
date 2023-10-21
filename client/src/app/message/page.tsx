@@ -20,7 +20,7 @@ export default function Page() {
   const [message, setMessage] = useState(''); // message input
   const [messages, setMessages] = useState<{
     id: string;
-    senderId: string;
+    senderHandle: string;
     message: string;
     timeSent: Date;
     dmId: string;
@@ -172,7 +172,7 @@ export default function Page() {
               <div style={{ flex: 1, overflowY: 'scroll' }}>
                 {messages.map((msg, idx) => (
                   <div key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
-                    {msg.message}
+                    {msg.senderHandle}: {msg.message}
                   </div>
                 ))}
               </div>

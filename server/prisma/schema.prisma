@@ -24,13 +24,13 @@ model User {
 }
 
 model Message {
-    id       String   @id @default(uuid())
-    sender   User     @relation(fields: [senderId], references: [id])
-    senderId String
-    message  String
-    timeSent DateTime @default(now())
-    dm       Dm?      @relation(fields: [dmId], references: [id])
-    dmId     String
+    id           String   @id @default(uuid())
+    sender       User     @relation(fields: [senderHandle], references: [handle])
+    senderHandle String
+    message      String
+    timeSent     DateTime @default(now())
+    dm           Dm?      @relation(fields: [dmId], references: [id])
+    dmId         String
 }
 
 model Dm {

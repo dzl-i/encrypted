@@ -16,6 +16,8 @@ export async function authLogin(email: string, password: string) {
   return {
     accessToken: accessToken,
     refreshToken: refreshToken,
-    userId: user.id
+    userId: user.id,
+    userHandle: user.handle,
+    userFullName: user.name
   };
 }

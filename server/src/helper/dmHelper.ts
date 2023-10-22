@@ -46,12 +46,12 @@ export async function getUserDms(userId: string) {
   return userDms;
 }
 
-export async function getDmMessages(dmId: string) {
-  const dmMessages = await prisma.dm.findUnique({
+export async function getDm(dmId: string) {
+  const dm = await prisma.dm.findUnique({
     where: {
       id: dmId
     },
-    select: {
+    include: {
       messages: {
         orderBy: {
           timeSent: "asc"
@@ -60,8 +60,8 @@ export async function getDmMessages(dmId: string) {
     }
   });
 
-  if (dmMessages === null) throw { status: 400, message: "Invalid dmId." };
-  return dmMessages;
+  if (dm === null) throw { status: 400, message: "Invalid dmId." };
+  return dm;
 }
 
 export async function checkAuthorisation(userId: string, dmId: string) {

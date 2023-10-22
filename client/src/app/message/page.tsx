@@ -31,6 +31,9 @@ export default function Page() {
   const [showDmCreate, setShowDmCreate] = useState(false);
   const [trigger, setTrigger] = useState(false);
 
+  const [friendFullName, setFriendFullName] = useState<string>('');
+  const [friendHandle, setFriendHandle] = useState<string>('');
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && message !== "") {
       sendMessage(e);
@@ -43,6 +46,12 @@ export default function Page() {
       withCredentials: true
     });
     setSocket(socketConnection);
+
+    const userHandle = sessionStorage.getItem("userHandle");
+    if (userHandle) {
+      // Emit the join event with the fetched ID
+      socketConnection.emit('join', userHandle);
+    }
 
     socketConnection.on('receive_dm_message', (receivedMessage) => {
       console.log(receivedMessage)
@@ -101,6 +110,8 @@ export default function Page() {
         .then(data => {
           if (data.messages) {
             setMessages(data.messages);
+            setFriendFullName(data.friendFullName);
+            setFriendHandle(data.friendHandle);
           }
         })
         .catch(error => {
@@ -160,8 +171,8 @@ export default function Page() {
           <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem", borderRadius: 0 }}>
             <Card shadow='none' style={{ display: "flex", flexDirection: "row", padding: "1rem" }}>
               <User
-                name="John Smith"
-                description="@mynameisjohn"
+                name={friendFullName}
+                description={`@${friendHandle}`}
                 avatarProps={{
                   src: "https://kansai-resilience-forum.jp/wp-content/uploads/2019/02/IAFOR-Blank-Avatar-Image-1.jpg"
                 }}

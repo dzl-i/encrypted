@@ -65,7 +65,7 @@ app.get('/', (req: Request, res: Response) => {
 app.post('/auth/register', async (req: Request, res: Response) => {
   try {
     const { name, email, password, handle } = req.body;
-    const { accessToken, refreshToken, userId } = await authRegister(name, email, password, handle);
+    const { accessToken, refreshToken, userId, userHandle, userFullName } = await authRegister(name, email, password, handle);
 
     // Assign cookies
     res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
@@ -73,7 +73,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
-    res.status(200).json({ userId: userId });
+    res.status(200).json({ userId: userId, userHandle: userHandle, userFullName: userFullName });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -83,7 +83,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 app.post('/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const { accessToken, refreshToken, userId } = await authLogin(email, password);
+    const { accessToken, refreshToken, userId, userHandle, userFullName } = await authLogin(email, password);
 
     // Assign cookies
     res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
@@ -91,7 +91,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
-    res.status(200).json({ userId: userId });
+    res.status(200).json({ userId: userId, userHandle: userHandle, userFullName: userFullName });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -142,7 +142,7 @@ app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Reques
       dmName: dm.dmName, // You can adjust this based on your DM model structure
     };
 
-    io.emit('new_dm_created', dmData);
+    io.to(userHandles[0]).emit('new_dm_created', dmData);
 
     res.status(200).json({ dmId: dm.id });
   } catch (error: any) {
@@ -165,10 +165,13 @@ app.get('/dm/list', silentTokenRefresh, authenticateToken, async (req: Request, 
 
 app.post('/dm/messages', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
+    const userId = res.locals.userId;
     const dmId = req.body.dmId;
-    const messages = await dmMessages(dmId);
 
-    res.status(200).json({ messages: messages });
+    const { friendFullName, friendHandle, messages } = await dmMessages(userId, dmId);
+    console.log(friendFullName, friendHandle)
+
+    res.status(200).json({ friendFullName: friendFullName, friendHandle: friendHandle, messages: messages });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

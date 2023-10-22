@@ -1,4 +1,5 @@
 import { Button, Card, CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, User } from '@nextui-org/react';
+import { useEffect, useState } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { BsFillPersonFill } from 'react-icons/bs';
 import { HiMiniUserGroup } from 'react-icons/hi2';
@@ -16,6 +17,15 @@ type DmListSidebarProps = {
 };
 
 export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClick, onNewDmClick, dms }) => {
+  const [userFullName, setUserFullName] = useState<string>('');
+  const [userHandle, setUserHandle] = useState<string>('');
+
+  // Use useEffect to ensure this runs on the client side after initial render
+  useEffect(() => {
+    setUserFullName(sessionStorage.getItem("userFullName") || '');
+    setUserHandle(sessionStorage.getItem("userHandle") || '');
+  }, []);
+
   return (
     <Card style={{ width: '20%', maxHeight: "calc(100vh - 80px)", backgroundColor: "#151515", overflowY: 'scroll', borderRadius: 0 }}>
       <div style={{ display: "flex", flexDirection: "row", backgroundColor: "#151515", border: 0, alignItems: "center", padding: "1.5rem", height: "50px", width: "100%", justifyContent: 'space-between', position: "sticky", top: 0, zIndex: 10 }}>
@@ -55,8 +65,8 @@ export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClic
       </div>
       <div style={{ display: "flex", flexDirection: "row", padding: "1rem", backgroundColor: "#101010", height: "80px", width: "100%", margin: 0, bottom: 0, position: "fixed" }}>
         <User
-          name="Jack Smith"
-          description="@mynameisjack"
+          name={userFullName}
+          description={`@${userHandle}`}
           avatarProps={{
             src: "https://kansai-resilience-forum.jp/wp-content/uploads/2019/02/IAFOR-Blank-Avatar-Image-1.jpg"
           }}

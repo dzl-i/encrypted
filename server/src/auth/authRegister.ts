@@ -33,6 +33,8 @@ export async function authRegister(name: string, email: string, password: string
   return {
     accessToken: accessToken,
     refreshToken: refreshToken,
-    userId: user.id
+    userId: user.id,
+    userHandle: user.handle,
+    userFullName: user.name
   };
 }

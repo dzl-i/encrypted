@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Button, Input, Card, User, Divider } from '@nextui-org/react';
+import { Button, Input, Card, User, Divider, CardHeader, CardBody } from '@nextui-org/react';
 import io, { Socket } from 'socket.io-client';
 
 import { NavBar } from "@/components/NavbarProtected";
@@ -171,8 +171,15 @@ export default function Page() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 250px)", marginTop: "10px" }}>
               <div style={{ flex: 1, overflowY: 'scroll' }}>
                 {messages.map((msg, idx) => (
-                  <div key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
-                    {msg.senderHandle}: {msg.message}
+                  <div style={{ textAlign: "left" }} key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
+                    <Card style={{ borderRadius: 0, width: "99%" }}>
+                      <CardHeader style={{ fontWeight: "bolder", paddingBottom: 0 }}>
+                        {msg.senderHandle}:
+                      </CardHeader>
+                      <CardBody style={{ paddingTop: 0 }}>
+                        {msg.message}
+                      </CardBody>
+                    </Card>
                   </div>
                 ))}
               </div>

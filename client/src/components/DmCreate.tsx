@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter, CardHeader, Input } from "@nextui-org/react"
+import { Button, Card, CardBody, CardFooter, CardHeader, Input, Spinner } from "@nextui-org/react"
 import { useState } from "react";
 
 type DmCreateProps = {
@@ -8,6 +8,7 @@ type DmCreateProps = {
 
 export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
   const [username, setUsername] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -21,6 +22,8 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
 
   const handleCreateDm = async () => {
     try {
+      setIsLoading(true);
+
       const payload = {
         userHandles: [username]
       };
@@ -47,6 +50,7 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
       console.error("An unexpected error occurred. Please try again later.");
     } finally {
       onClose()
+      setIsLoading(false);
     }
   }
 
@@ -59,7 +63,9 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
         <Input isRequired size="md" type="name" label="Username" placeholder="Search..." onChange={handleUsernameChange} onKeyDown={handleKeyDown} />
       </CardBody>
       <CardFooter style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <Button color="primary" onClick={handleCreateDm} style={{ marginBottom: "1.5rem" }}>Create Direct Message</Button>
+        <Button color="primary" onClick={async () => handleCreateDm} disabled={isLoading} style={{ marginBottom: "1.5rem" }}>
+          {isLoading ? <Spinner size="md" color="default" /> : "Create Direct Message"}
+        </Button>
         <Button color="danger" onClick={onClose}>Cancel</Button>
       </CardFooter>
     </Card>

@@ -40,6 +40,46 @@ export default function Page() {
     }
   };
 
+  // Sending the message
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (message !== "" && socket && activeDm) {
+      socket.emit('send_dm_message', activeDm, message, (acknowledgedMessage) => {
+        // The server should send back the saved message object as acknowledgement
+        if (acknowledgedMessage && acknowledgedMessage.id) {
+          setMessages((prevMessages) => [...prevMessages, acknowledgedMessage]);
+        }
+      });
+      setMessage('');
+    }
+  };
+
+  // Refreshing tokens
+  const authRefresh = async () => {
+    try {
+      // Make a request to the /auth/refresh route to refresh the token
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Start the interval to refresh token every 14 minutes
+    const refreshInterval = setInterval(authRefresh, 14 * 60 * 1000);
+
+    // Clear the interval when the component is unmounted
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, []);
+
   // Handling Socket.io
   useEffect(() => {
     const socketConnection = io(`${process.env.NEXT_PUBLIC_API_URL}`, {
@@ -67,20 +107,6 @@ export default function Page() {
       socketConnection.disconnect();
     };
   }, []);
-
-  // Sending the message
-  const sendMessage = (e) => {
-    e.preventDefault();
-    if (message !== "" && socket && activeDm) {
-      socket.emit('send_dm_message', activeDm, message, (acknowledgedMessage) => {
-        // The server should send back the saved message object as acknowledgement
-        if (acknowledgedMessage && acknowledgedMessage.id) {
-          setMessages((prevMessages) => [...prevMessages, acknowledgedMessage]);
-        }
-      });
-      setMessage('');
-    }
-  };
 
   // Automatically scroll to newest message
   useEffect(() => {

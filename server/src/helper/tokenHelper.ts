@@ -50,12 +50,15 @@ export async function checkValidToken(refreshToken: string) {
   if (res === null) return false; else return true;
 }
 
-export async function getIdFromToken(refreshToken: string) {
+export async function getUserFromToken(refreshToken: string) {
   const res = await prisma.refreshToken.findFirst({
     where: {
       refreshToken: getHash(refreshToken)
+    },
+    select: {
+      user: true
     }
   });
 
-  if (res === null) return null; else return res.userId;
+  if (res === null) return null; else return res.user;
 }

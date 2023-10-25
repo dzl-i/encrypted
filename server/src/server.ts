@@ -101,15 +101,15 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 app.post('/auth/refresh', async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    const token = await authRefresh(refreshToken);
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken, userFullName, userHandle } = await authRefresh(refreshToken);
 
     // Assign cookies
-    res.cookie('accessToken', token.accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
-    res.cookie('refreshToken', token.refreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
+    res.cookie('accessToken', newAccessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
+    res.cookie('refreshToken', newRefreshToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 7776000000 });
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
-    res.sendStatus(200);
+    res.status(200).json({ userHandle: userHandle, userFullName: userFullName });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

@@ -43,6 +43,10 @@ export const NavBar = () => {
       if (response.ok) {
         // Redirect to the "/message" route upon successful sign-up
         router.push("/message");
+
+        const responseData = await response.json();
+        sessionStorage.setItem("userHandle", responseData.userHandle);
+        sessionStorage.setItem("userFullName", responseData.userFullName);
       } else {
         // Handle error response from the API
         console.error("API Error: ", response.statusText);

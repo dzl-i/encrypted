@@ -63,7 +63,7 @@ export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClic
           ))}
         </ul>
       </div>
-      <div style={{ display: "flex", flexDirection: "row", padding: "1rem", backgroundColor: "#101010", height: "80px", width: "100%", margin: 0, bottom: 0, position: "fixed" }}>
+      <div style={{ display: "flex", flexDirection: "row", padding: "1rem", backgroundColor: "#101010", height: "80px", width: "20%", margin: 0, bottom: 0, position: "fixed" }}>
         <User
           name={userFullName}
           description={`@${userHandle}`}

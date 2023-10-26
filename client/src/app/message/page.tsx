@@ -193,40 +193,42 @@ export default function Page() {
       <NavBar />
       <div className="flex flex-row flex-grow mt-20">
         <DmListSidebar activeDm={activeDm} onDmClick={handleSetActiveDm} onNewDmClick={() => setShowDmCreate(true)} dms={dms} />
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem", borderRadius: 0 }}>
-            <Card shadow='none' style={{ display: "flex", flexDirection: "row", padding: "1rem" }}>
-              <User
-                name={friendFullName}
-                description={`@${friendHandle}`}
-                avatarProps={{
-                  src: "https://kansai-resilience-forum.jp/wp-content/uploads/2019/02/IAFOR-Blank-Avatar-Image-1.jpg"
-                }}
-              />
-            </Card>
-            <Divider />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 250px)", marginTop: "10px" }}>
-              <div style={{ flex: 1, overflowY: 'scroll' }}>
-                {messages.map((msg, idx) => (
-                  <div style={{ textAlign: "left" }} key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
-                    <Card style={{ borderRadius: 0, width: "99%" }}>
-                      <CardHeader style={{ fontWeight: "bolder", paddingBottom: 0 }}>
-                        {msg.senderHandle}:
-                      </CardHeader>
-                      <CardBody style={{ paddingTop: 0 }}>
-                        {msg.message}
-                      </CardBody>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-              <Card style={{ display: 'flex', flexDirection: "row", gap: '15px', position: "fixed", left: "20%", bottom: 0, width: "80%", padding: "1rem", backgroundColor: "#202020", borderRadius: 0 }}>
-                <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." onKeyDown={handleKeyDown} />
-                <Button onClick={sendMessage}>Send</Button>
+        {activeDm && (
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Card style={{ width: '100%', minHeight: "calc(100vh - 80px)", maxHeight: "calc(100vh - 80px)", padding: "0.5rem", borderRadius: 0 }}>
+              <Card shadow='none' style={{ display: "flex", flexDirection: "row", padding: "1rem" }}>
+                <User
+                  name={friendFullName}
+                  description={`@${friendHandle}`}
+                  avatarProps={{
+                    src: "https://kansai-resilience-forum.jp/wp-content/uploads/2019/02/IAFOR-Blank-Avatar-Image-1.jpg"
+                  }}
+                />
               </Card>
-            </div>
-          </Card>
-        </div>
+              <Divider />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', maxHeight: "calc(100vh - 250px)", marginTop: "10px" }}>
+                <div style={{ flex: 1, overflowY: 'scroll' }}>
+                  {messages.map((msg, idx) => (
+                    <div style={{ textAlign: "left" }} key={idx} id={idx === messages.length - 1 ? "lastMessage" : ""}>
+                      <Card style={{ borderRadius: 0, width: "99%" }}>
+                        <CardHeader style={{ fontWeight: "bolder", paddingBottom: 0 }}>
+                          {msg.senderHandle}:
+                        </CardHeader>
+                        <CardBody style={{ paddingTop: 0 }}>
+                          {msg.message}
+                        </CardBody>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+                <Card style={{ display: 'flex', flexDirection: "row", gap: '15px', position: "fixed", left: "20%", bottom: 0, width: "80%", padding: "1rem", backgroundColor: "#202020", borderRadius: 0 }}>
+                  <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." onKeyDown={handleKeyDown} />
+                  <Button onClick={sendMessage}>Send</Button>
+                </Card>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </main>
   );

@@ -52,7 +52,7 @@ export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClic
           </DropdownMenu>
         </Dropdown>
       </div>
-      <div style={{ maxHeight: "calc(100vh - 210px)", overflowY: 'scroll', paddingLeft: "1rem", paddingRight: "1rem" }}>
+      <div style={{ maxHeight: "calc(100vh - 205px)", overflowY: 'scroll', paddingLeft: "1rem", paddingRight: "1rem" }}>
         <ul style={{ position: "relative" }}>
           {dms?.map(dm => (
             <Card key={dm.id} shadow='none' isPressable onClick={() => onDmClick(dm.id)} style={{ width: '100%', borderRadius: 0, backgroundColor: dm.id === activeDm ? "#383838" : "#151515" }}>
@@ -63,7 +63,7 @@ export const DmListSidebar: React.FC<DmListSidebarProps> = ({ activeDm, onDmClic
           ))}
         </ul>
       </div>
-      <div style={{ display: "flex", flexDirection: "row", padding: "1rem", backgroundColor: "#101010", height: "80px", width: "20%", margin: 0, bottom: 0, position: "fixed" }}>
+      <div style={{ display: "flex", flexDirection: "row", padding: "1rem", backgroundColor: "#101010", width: "20%", margin: 0, bottom: 0, position: "fixed" }}>
         <User
           name={userFullName}
           description={`@${userHandle}`}

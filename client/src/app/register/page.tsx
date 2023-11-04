@@ -6,7 +6,38 @@ import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-o
 import { NavBar } from "@/components/NavbarPublic";
 import { ErrorMessage } from "@/components/ErrorMessage";
 
+import { generateKeyPair, exportCryptoKey } from "@/util/crypto";
+
 import "dotenv/config";
+import { openDB } from "idb";
+
+
+// Generate a RSA key pair (public key and private key)
+const generateAndStoreKeys = async () => {
+  try {
+    // Generate key pair
+    const { privateKey, publicKey } = await generateKeyPair();
+
+    // Export the public key to a format suitable for your backend (e.g., PEM or Base64)
+    const exportedPublicKey = await exportCryptoKey(publicKey);
+
+    // Store the private key securely in IndexedDB
+    const db = await openDB('keyDB', 1, {
+      upgrade(db) {
+        db.createObjectStore('keys');
+      },
+    });
+
+    const tx = db.transaction('keys', 'readwrite');
+    await tx.store.put(privateKey, 'privateKey');
+    await tx.done;
+
+    return exportedPublicKey;
+  } catch (error) {
+    console.error('Error generating or storing keys', error);
+  }
+};
+
 
 export default function Page() {
   const [name, setName] = useState<string>("");
@@ -38,15 +69,19 @@ export default function Page() {
     try {
       setIsLoading(true);
 
+      // Generate and store keys, and get the public key
+      const exportedPublicKey = await generateAndStoreKeys();
+
       // Construct an object with the input values
       const userData = {
         name,
         email,
         password,
         handle: username,
+        publicKey: exportedPublicKey
       };
 
-      // Send the userData to your API using fetch
+      // Send the userData to using fetch
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: "POST",
         credentials: "include",

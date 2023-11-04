@@ -76,3 +76,16 @@ export async function checkBlockedAccount(email: string) {
 
   if (user.remainingLoginAttempts === 0) return true; else return false;
 }
+
+export async function getPublicKey(handle: string) {
+  const publicKey = await prisma.user.findFirst({
+    where: {
+      handle: handle
+    },
+    select: {
+      publicKey: true
+    }
+  });
+
+  if (publicKey === null) return null; else return publicKey;
+}

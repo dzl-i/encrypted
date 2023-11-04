@@ -17,7 +17,7 @@ model User {
     password               String
     handle                 String         @unique
     remainingLoginAttempts Int            @default(3)
-    isBlocked              Boolean        @default(false)
+    publicKey              String
     messages               Message[]
     memberOfDms            Dm[]
     tokens                 RefreshToken[]

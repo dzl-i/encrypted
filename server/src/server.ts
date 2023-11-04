@@ -64,8 +64,8 @@ app.get('/', (req: Request, res: Response) => {
 // AUTH ROUTES
 app.post('/auth/register', async (req: Request, res: Response) => {
   try {
-    const { name, email, password, handle } = req.body;
-    const { accessToken, refreshToken, userId, userHandle, userFullName } = await authRegister(name, email, password, handle);
+    const { name, email, password, handle, publicKey } = req.body;
+    const { accessToken, refreshToken, userId, userHandle, userFullName } = await authRegister(name, email, password, handle, publicKey);
 
     // Assign cookies
     res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });

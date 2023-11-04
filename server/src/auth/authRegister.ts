@@ -8,7 +8,7 @@ import { generateToken } from '../helper/tokenHelper';
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export async function authRegister(name: string, email: string, password: string, handle: string) {
+export async function authRegister(name: string, email: string, password: string, handle: string, publicKey: string) {
   // Error Handling
   if (name.length < 1) throw { status: 400, message: "Name cannot be empty." };
   if (!validator.isEmail(email)) throw { status: 400, message: "Invalid email address." };
@@ -23,7 +23,8 @@ export async function authRegister(name: string, email: string, password: string
       name: name,
       email: email,
       password: getHash(password),
-      handle: handle
+      handle: handle,
+      publicKey: publicKey
     }
   });
 

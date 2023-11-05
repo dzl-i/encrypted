@@ -18,6 +18,7 @@ export async function authLogin(email: string, password: string) {
     refreshToken: refreshToken,
     userId: user.id,
     userHandle: user.handle,
-    userFullName: user.name
+    userFullName: user.name,
+    userPublicKey: user.publicKey
   };
 }

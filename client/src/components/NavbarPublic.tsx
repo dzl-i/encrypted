@@ -47,6 +47,7 @@ export const NavBar = () => {
         const responseData = await response.json();
         sessionStorage.setItem("userHandle", responseData.userHandle);
         sessionStorage.setItem("userFullName", responseData.userFullName);
+        sessionStorage.setItem("publicKey", responseData.userPublicKey);
       } else {
         // Handle error response from the API
         console.error("API Error: ", response.statusText);

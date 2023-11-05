@@ -83,7 +83,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 app.post('/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const { accessToken, refreshToken, userId, userHandle, userFullName } = await authLogin(email, password);
+    const { accessToken, refreshToken, userId, userHandle, userFullName, userPublicKey } = await authLogin(email, password);
 
     // Assign cookies
     res.cookie('accessToken', accessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
@@ -91,7 +91,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
-    res.status(200).json({ userId: userId, userHandle: userHandle, userFullName: userFullName });
+    res.status(200).json({ userId: userId, userHandle: userHandle, userFullName: userFullName, userPublicKey: userPublicKey });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -101,7 +101,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 app.post('/auth/refresh', async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken, userFullName, userHandle } = await authRefresh(refreshToken);
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken, userFullName, userHandle, userPublicKey } = await authRefresh(refreshToken);
 
     // Assign cookies
     res.cookie('accessToken', newAccessToken, { httpOnly: isProduction, path: "/", secure: isProduction, sameSite: isProduction ? "none" : "lax", maxAge: 900000 });
@@ -109,7 +109,7 @@ app.post('/auth/refresh', async (req: Request, res: Response) => {
 
     res.header('Access-Control-Allow-Credentials', 'true');
 
-    res.status(200).json({ userHandle: userHandle, userFullName: userFullName });
+    res.status(200).json({ userHandle: userHandle, userFullName: userFullName, userPublicKey: userPublicKey });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });
@@ -139,7 +139,7 @@ app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Reques
 
     const dmData = {
       id: dm.id,
-      dmName: dm.dmName, // You can adjust this based on your DM model structure
+      dmName: dm.dmName,
     };
 
     io.to(userHandles[0]).emit('new_dm_created', dmData);

@@ -26,6 +26,7 @@ export async function authRefresh(refreshToken: string) {
     accessToken: token.accessToken,
     refreshToken: token.refreshToken,
     userFullName: user.name,
-    userHandle: user.handle
+    userHandle: user.handle,
+    userPublicKey: user.publicKey
   };
 }

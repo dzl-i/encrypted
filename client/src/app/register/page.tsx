@@ -21,6 +21,8 @@ const generateAndStoreKeys = async () => {
     // Export the public key to a format suitable for your backend (e.g., PEM or Base64)
     const exportedPublicKey = await exportCryptoKey(publicKey);
 
+    sessionStorage.setItem("publicKey", exportedPublicKey);
+
     // Store the private key securely in IndexedDB
     const db = await openDB('keyDB', 1, {
       upgrade(db) {

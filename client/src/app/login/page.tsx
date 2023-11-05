@@ -57,6 +57,7 @@ export default function Page() {
         const responseData = await response.json();
         sessionStorage.setItem("userHandle", responseData.userHandle);
         sessionStorage.setItem("userFullName", responseData.userFullName);
+        sessionStorage.setItem("publicKey", responseData.userPublicKey);
       } else {
         // Handle error response from the API
         const errorData = await response.json();

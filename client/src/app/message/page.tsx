@@ -33,6 +33,7 @@ export default function Page() {
 
   const [friendFullName, setFriendFullName] = useState<string>('');
   const [friendHandle, setFriendHandle] = useState<string>('');
+  const [friendPublicKey, setFriendPublicKey] = useState<string>('');
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && message !== "") {
@@ -138,6 +139,7 @@ export default function Page() {
             setMessages(data.messages);
             setFriendFullName(data.friendFullName);
             setFriendHandle(data.friendHandle);
+            setFriendPublicKey(data.friendPublicKey);
           }
         })
         .catch(error => {

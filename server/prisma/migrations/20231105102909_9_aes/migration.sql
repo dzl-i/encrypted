@@ -1,0 +1,15 @@
+-- CreateTable
+CREATE TABLE "AESKeys" (
+    "id" TEXT NOT NULL,
+    "dmId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "encryptedKey" TEXT NOT NULL,
+
+    CONSTRAINT "AESKeys_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "AESKeys" ADD CONSTRAINT "AESKeys_dmId_fkey" FOREIGN KEY ("dmId") REFERENCES "Dm"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AESKeys" ADD CONSTRAINT "AESKeys_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -133,16 +133,16 @@ app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Requ
 app.post('/dm/create', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = res.locals.userId;
-    const { userHandles } = req.body;
+    const { userHandle, userEncryptedAESKey, friendEncryptedAESKey } = req.body;
 
-    const dm = await dmCreate(userId, userHandles);
+    const dm = await dmCreate(userId, userHandle, userEncryptedAESKey, friendEncryptedAESKey);
 
     const dmData = {
       id: dm.id,
       dmName: dm.dmName,
     };
 
-    io.to(userHandles[0]).emit('new_dm_created', dmData);
+    io.to(userHandle).emit('new_dm_created', dmData);
 
     res.status(200).json({ dmId: dm.id });
   } catch (error: any) {

@@ -6,7 +6,7 @@ import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-o
 import { NavBar } from "@/components/NavbarPublic";
 import { ErrorMessage } from "@/components/ErrorMessage";
 
-import { generateKeyPair, exportCryptoKey } from "@/util/crypto";
+import { generateKeyPair, exportPublicKey } from "@/util/crypto";
 
 import "dotenv/config";
 import { openDB } from "idb";
@@ -18,8 +18,8 @@ const generateAndStoreKeys = async () => {
     // Generate key pair
     const { privateKey, publicKey } = await generateKeyPair();
 
-    // Export the public key to a format suitable for your backend (e.g., PEM or Base64)
-    const exportedPublicKey = await exportCryptoKey(publicKey);
+    // Export the public key to Base64 string
+    const exportedPublicKey = await exportPublicKey(publicKey);
 
     sessionStorage.setItem("publicKey", exportedPublicKey);
 

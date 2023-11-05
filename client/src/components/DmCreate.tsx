@@ -1,3 +1,4 @@
+import { encryptAndExportAESKey, generateAESKey } from "@/util/crypto";
 import { Button, Card, CardBody, CardFooter, CardHeader, Input, Spinner } from "@nextui-org/react"
 import { useState } from "react";
 
@@ -24,8 +25,17 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
     try {
       setIsLoading(true);
 
+      const userPublicKey = sessionStorage.getItem("publicKey");
+      const friendPublicKey = sessionStorage.getItem("friendPublicKey")
+
+      const aesKey = await generateAESKey();
+      const userEncryptedAESKey = await encryptAndExportAESKey(aesKey, userPublicKey);
+      const friendEncryptedAESKey = await encryptAndExportAESKey(aesKey, friendPublicKey);
+
       const payload = {
-        userHandles: [username]
+        userHandle: username,
+        userEncryptedAESKey: userEncryptedAESKey,
+        friendEncryptedAESKey: friendEncryptedAESKey
       };
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/create`, {

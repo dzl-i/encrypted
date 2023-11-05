@@ -1,23 +1,19 @@
-import jwt from "jsonwebtoken";
-
 import { getUserByHandle, getUserById } from "../helper/userHelper";
 import { addUserToDm, createDm, findDm } from "../helper/dmHelper";
+import { createKey } from "../helper/keyHelper";
 
-export async function dmCreate(userId: string, userHandles: string[]) {
+export async function dmCreate(userId: string, userHandle: string, userEncryptedAESKey: string, friendEncryptedAESKey: string) {
   const owner = await getUserById(userId);
   if (owner === null) throw { status: 400, message: "Invalid userId." }
 
   // Name of the DM is initially a concatenation of all user handles
   let dmNames = [owner.handle];
-  let userIds = [];
 
-  // Error checking and retrieving user handles
-  for (const uHandle of userHandles) {
-    const user = await getUserByHandle(uHandle);
-    if (user === null) throw { status: 400, message: "Invalid username." }
-    dmNames.push(uHandle);
-    userIds.push(user.id);
-  }
+  // Error checking and retrieving user handle
+  const user = await getUserByHandle(userHandle);
+  if (user === null) throw { status: 400, message: "Invalid username." }
+  dmNames.push(userHandle);
+  const friendId = user.id;
 
   const dmName = dmNames.sort().join(", ");
 
@@ -27,10 +23,12 @@ export async function dmCreate(userId: string, userHandles: string[]) {
   // Create the DM
   const dm = await createDm(userId, dmName);
 
-  // Add the users to the DM
-  for (const uId of userIds) {
-    await addUserToDm(dm.id, uId);
-  }
+  // Create the AESKeys
+  if (! await createKey(userEncryptedAESKey, userId, dm.id)) throw { status: 400, message: "Invalid Key." };
+  if (! await createKey(friendEncryptedAESKey, friendId, dm.id)) throw { status: 400, message: "Invalid Key." };
+
+  // Add the user to the DM
+  await addUserToDm(dm.id, friendId);
 
   return dm;
 }

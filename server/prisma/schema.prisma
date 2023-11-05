@@ -20,6 +20,7 @@ model User {
     publicKey              String
     messages               Message[]
     memberOfDms            Dm[]
+    keys                   AESKeys[]
     tokens                 RefreshToken[]
 }
 
@@ -38,6 +39,16 @@ model Dm {
     dmName   String    @unique
     messages Message[]
     members  User[]
+    keys     AESKeys[]
+}
+
+model AESKeys {
+    id           String @id @default(uuid())
+    dm           Dm     @relation(fields: [dmId], references: [id])
+    dmId         String
+    user         User   @relation(fields: [userId], references: [id])
+    userId       String
+    encryptedKey String
 }
 
 model RefreshToken {

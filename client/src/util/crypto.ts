@@ -1,3 +1,4 @@
+// Generate RSA Key Pair
 export const generateKeyPair = async () => {
   const keyPair = await window.crypto.subtle.generateKey(
     {
@@ -13,43 +14,139 @@ export const generateKeyPair = async () => {
   return keyPair;
 };
 
-export const exportCryptoKey = async (key) => {
-  const exported = await window.crypto.subtle.exportKey("spki", key);
-  let binaryString = "";
-  const bytes = new Uint8Array(exported);
+// Export the public key as a base64 string
+export const exportPublicKey = async (publicKey: CryptoKey) => {
+  const exportedPublicKey = await window.crypto.subtle.exportKey("spki", publicKey);
+  const exportedKeyBuffer = new Uint8Array(exportedPublicKey);
+  const exportedKeyArray = Array.from(exportedKeyBuffer);
+  const exportedKeyBase64 = btoa(String.fromCharCode(...exportedKeyArray));
 
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binaryString += String.fromCharCode(bytes[i]);
-  }
-
-  const base64String = btoa(binaryString);
-
-  return base64String;
+  return exportedKeyBase64;
 };
 
-export const importCryptoKey = async (keyData) => {
-  const key = await window.crypto.subtle.importKey(
-    "jwk",
-    keyData,
-    {
-      name: "RSA-OAEP",
-      hash: "SHA-256",
-    },
+// Import the public key from a base64 string
+export const importPublicKey = async (exportedKeyBase64: string) => {
+  const exportedKeyArray = new Uint8Array(atob(exportedKeyBase64).split('').map(char => char.charCodeAt(0)));
+  const importedKey = await window.crypto.subtle.importKey(
+    "spki",
+    exportedKeyArray.buffer,
+    { name: "RSA-OAEP", hash: "SHA-256" },
     true,
-    ["decrypt"]
+    ["encrypt"]
   );
 
-  return key;
+  return importedKey;
 };
 
-export const encryptData = async (key, data) => {
-  const encrypted = await window.crypto.subtle.encrypt(
+// Function to generate an AES key
+export const generateAESKey = async () => {
+  const aesKey = await window.crypto.subtle.generateKey(
+    {
+      name: "AES-GCM",
+      length: 256,
+    },
+    true,
+    ["encrypt", "decrypt"]
+  );
+
+  return aesKey;
+};
+
+// Encrypt an AES key with an RSA public key
+export const encryptAndExportAESKey = async (aesKey, publicKey) => {
+  // Import the RSA public key
+  const importedPublicKey = await window.crypto.subtle.importKey(
+    "jwk",
+    publicKey,
+    {
+      name: "RSA-OAEP",
+      hash: { name: "SHA-256" },
+    },
+    false,
+    ["encrypt"]
+  );
+
+  // Export the AES key as raw data
+  const exportedAESKey = await window.crypto.subtle.exportKey("raw", aesKey);
+
+  // Encrypt the exported AES key with the RSA public key
+  const encryptedKey = await window.crypto.subtle.encrypt(
     {
       name: "RSA-OAEP"
     },
-    key,
-    data
+    importedPublicKey,
+    exportedAESKey
   );
 
-  return encrypted;
-};
+  // Convert the encrypted key to a Base64 string
+  const base64EncryptedKey = arrayBufferToBase64(encryptedKey);
+
+  return base64EncryptedKey;
+}
+
+// Import the encrypted AES key back into its original state
+export const importEncryptedAESKey = async (base64EncryptedKey, rsaPrivateKey) => {
+  // Convert the Base64 string back to a buffer
+  const encryptedKeyBuffer = new Uint8Array(atob(base64EncryptedKey).split("").map(char => char.charCodeAt(0)));
+
+  // Import the RSA private key into a format usable by the Web Crypto API
+  const importedPrivateKey = await window.crypto.subtle.importKey(
+    "jwk", // Assuming the RSA private key is in JWK format
+    rsaPrivateKey,
+    {
+      name: "RSA-OAEP",
+      hash: { name: "SHA-256" },
+    },
+    false,
+    ["decrypt"]
+  );
+
+  // Decrypt the AES key
+  const decryptedKeyBuffer = await window.crypto.subtle.decrypt(
+    {
+      name: "RSA-OAEP"
+    },
+    importedPrivateKey,
+    encryptedKeyBuffer
+  );
+
+  // Import the decrypted key back into the AES format
+  const aesKey = await window.crypto.subtle.importKey(
+    "raw",
+    decryptedKeyBuffer,
+    {
+      name: "AES-GCM",
+      length: 256,
+    },
+    true,
+    ["encrypt", "decrypt"]
+  );
+
+  return aesKey;
+}
+
+// Convert the encrypted key to a Base64 string
+const arrayBufferToBase64 = async (buffer) => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  return btoa(binary);
+}
+
+// Convert a Base64 string to an ArrayBuffer
+const base64ToArrayBuffer = async (base64) => {
+  const binary_string = atob(base64);
+  const len = binary_string.length;
+  const bytes = new Uint8Array(len);
+
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary_string.charCodeAt(i);
+  }
+
+  return bytes.buffer;
+}

@@ -181,10 +181,9 @@ app.post('/dm/messages', silentTokenRefresh, authenticateToken, async (req: Requ
     const userId = res.locals.userId;
     const dmId = req.body.dmId;
 
-    const { friendFullName, friendHandle, messages } = await dmMessages(userId, dmId);
-    console.log(friendFullName, friendHandle)
+    const { friendFullName, friendHandle, messages, aesKey } = await dmMessages(userId, dmId);
 
-    res.status(200).json({ friendFullName: friendFullName, friendHandle: friendHandle, messages: messages });
+    res.status(200).json({ friendFullName: friendFullName, friendHandle: friendHandle, messages: messages, aesKey: aesKey });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

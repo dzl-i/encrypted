@@ -7,6 +7,7 @@ import io, { Socket } from 'socket.io-client';
 import { NavBar } from "@/components/NavbarProtected";
 import { DmListSidebar } from '@/components/DmListSidebar';
 import { DmCreate } from '@/components/DmCreate';
+import { arrayBufferToBase64, decryptMessage, encryptMessage, importEncryptedAESKey } from '@/util/crypto';
 
 type Dm = {
   id: string;
@@ -34,6 +35,8 @@ export default function Page() {
   const [friendFullName, setFriendFullName] = useState<string>('');
   const [friendHandle, setFriendHandle] = useState<string>('');
 
+  const [aesKey, setAESKey] = useState<CryptoKey>();
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && message !== "") {
       sendMessage(e);
@@ -41,11 +44,21 @@ export default function Page() {
   };
 
   // Sending the message
-  const sendMessage = (e) => {
+  const sendMessage = async (e) => {
     e.preventDefault();
-    if (message !== "" && socket && activeDm) {
-      socket.emit('send_dm_message', activeDm, message, (acknowledgedMessage) => {
-        // The server should send back the saved message object as acknowledgement
+    console.log(socket, activeDm, aesKey)
+    if (message !== "" && socket && activeDm && aesKey) {
+      const { ciphertext, iv } = await encryptMessage(message, aesKey);
+
+      const messageToSend = {
+        dmId: activeDm,
+        ciphertext: ciphertext,
+        iv: iv
+      };
+
+      // Emit the message with ciphertext and iv in base64
+      socket.emit('send_dm_message', messageToSend, (acknowledgedMessage) => {
+        // The server should send back the saved message object as an acknowledgement
         if (acknowledgedMessage && acknowledgedMessage.id) {
           setMessages((prevMessages) => [...prevMessages, acknowledgedMessage]);
         }
@@ -93,9 +106,15 @@ export default function Page() {
       socketConnection.emit('join', userHandle);
     }
 
-    socketConnection.on('receive_dm_message', (receivedMessage) => {
-      console.log(receivedMessage)
-      setMessages((prevMessages) => [...prevMessages, receivedMessage]);
+    socketConnection.on('receive_dm_message', async (encryptedMessage) => {
+      if (aesKey) {
+        // Convert from base64 to Uint8Array
+        const iv = Uint8Array.from(atob(encryptedMessage.iv), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(encryptedMessage.ciphertext), c => c.charCodeAt(0));
+
+        const decryptedMessage = await decryptMessage(ciphertext, iv, aesKey);
+        setMessages((prevMessages) => [...prevMessages, { ...encryptedMessage, message: decryptedMessage }]);
+      }
     });
 
     // Handle new_dm_created event
@@ -106,7 +125,7 @@ export default function Page() {
     return () => {
       socketConnection.disconnect();
     };
-  }, []);
+  }, [aesKey]);
 
   // Automatically scroll to newest message
   useEffect(() => {
@@ -118,33 +137,57 @@ export default function Page() {
 
   // When the active DM changes, join the new DM room and leave the previous room.
   useEffect(() => {
-    if (socket && activeDm) {
+    if (socket && activeDm && aesKey) {
       socket.emit('join', activeDm);
 
-      // Fetch previous messages of the DM
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/messages`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          dmId: activeDm
-        }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.messages) {
-            setMessages(data.messages);
+      const fetchMessages = async () => {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/messages`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ dmId: activeDm }),
+          });
+
+          const data = await response.json();
+
+          if (data.messages && aesKey) {
             setFriendFullName(data.friendFullName);
             setFriendHandle(data.friendHandle);
+
+            if (data.aesKey && !aesKey) {
+              const key = data.aesKey;
+              setAESKey(await importEncryptedAESKey(key));
+            }
+
+            // Decrypt all messages
+            const decryptedMessages = await Promise.all(data.messages.map(async (message) => {
+              const iv = Uint8Array.from(atob(message.iv), c => c.charCodeAt(0));
+              const ciphertext = Uint8Array.from(atob(message.ciphertext), c => c.charCodeAt(0));
+
+              const decryptedMessage = await decryptMessage(ciphertext, iv, aesKey);
+              return { ...message, message: decryptedMessage }; // Return a new object with the decrypted message
+            }));
+
+            setMessages(decryptedMessages);
           }
-        })
-        .catch(error => {
+        } catch (error) {
           console.error("Error fetching messages for DM", activeDm, error);
-        });
+        }
+      };
+
+      fetchMessages();
     }
-  }, [activeDm, socket]);
+
+    // Cleanup function to leave the DM when the component is unmounted or activeDm changes
+    return () => {
+      if (socket && activeDm) {
+        socket.emit('leave', activeDm);
+      }
+    };
+  }, [activeDm, socket, aesKey]); // Only re-run the effect if activeDm, socket, or aesKey changes
 
   useEffect(() => {
     const fetchDms = async () => {

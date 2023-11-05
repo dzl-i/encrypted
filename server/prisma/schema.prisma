@@ -49,6 +49,8 @@ model AESKeys {
     user         User   @relation(fields: [userId], references: [id])
     userId       String
     encryptedKey String
+
+    @@unique([dmId, userId])
 }
 
 model RefreshToken {

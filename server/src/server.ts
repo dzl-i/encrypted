@@ -23,6 +23,7 @@ import { dmMessages } from './dm/dmMessages';
 import { storeMessage } from './helper/messageHelper';
 import { checkAuthorisation } from './helper/dmHelper';
 import { getUserByHandle } from './helper/userHelper';
+import { authPublicKey } from './auth/authPublicKey';
 
 
 const prisma = new PrismaClient()
@@ -122,6 +123,18 @@ app.post('/auth/logout', silentTokenRefresh, authenticateToken, async (req: Requ
     await authLogout(refreshToken);
 
     res.sendStatus(200);
+  } catch (error: any) {
+    console.error(error);
+    res.status(error.status || 500).json({ error: error.message || "An error occurred." });
+  }
+});
+
+app.get('/auth/publicKey', silentTokenRefresh, authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { handle } = req.params;
+    const publicKey = await authPublicKey(handle);
+
+    res.status(200).json({ publicKey: publicKey });
   } catch (error: any) {
     console.error(error);
     res.status(error.status || 500).json({ error: error.message || "An error occurred." });

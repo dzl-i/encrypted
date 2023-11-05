@@ -21,12 +21,31 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
     }
   };
 
+  const retrievePublicKey = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/publicKey?handle=${username}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        return responseData.publicKey;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const handleCreateDm = async () => {
     try {
       setIsLoading(true);
 
       const userPublicKey = sessionStorage.getItem("publicKey");
-      const friendPublicKey = sessionStorage.getItem("friendPublicKey")
+      const friendPublicKey = await retrievePublicKey();
 
       const aesKey = await generateAESKey();
       const userEncryptedAESKey = await encryptAndExportAESKey(aesKey, userPublicKey);

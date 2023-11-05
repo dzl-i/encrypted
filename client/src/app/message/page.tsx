@@ -138,8 +138,6 @@ export default function Page() {
             setMessages(data.messages);
             setFriendFullName(data.friendFullName);
             setFriendHandle(data.friendHandle);
-
-            sessionStorage.setItem("friendPublicKey", data.friendPublicKey);
           }
         })
         .catch(error => {

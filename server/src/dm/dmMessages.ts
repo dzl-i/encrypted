@@ -10,14 +10,12 @@ export async function dmMessages(userId: string, dmId: string) {
 
   const friend = await getUserByHandle(friendHandle);
   const friendFullName = friend?.name;
-  const friendPublicKey = friend?.publicKey;
   const messages = dm.messages;
 
   // Returns array of messages sorted ascendingly based on timeSent
   return {
     friendFullName: friendFullName,
     friendHandle: friendHandle,
-    friendPublicKey: friendPublicKey,
     messages: messages
   };
 }

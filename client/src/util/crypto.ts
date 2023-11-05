@@ -55,16 +55,7 @@ export const generateAESKey = async () => {
 // Encrypt an AES key with an RSA public key
 export const encryptAndExportAESKey = async (aesKey, publicKey) => {
   // Import the RSA public key
-  const importedPublicKey = await window.crypto.subtle.importKey(
-    "jwk",
-    publicKey,
-    {
-      name: "RSA-OAEP",
-      hash: { name: "SHA-256" },
-    },
-    false,
-    ["encrypt"]
-  );
+  const importedPublicKey = await importPublicKey(publicKey);
 
   // Export the AES key as raw data
   const exportedAESKey = await window.crypto.subtle.exportKey("raw", aesKey);

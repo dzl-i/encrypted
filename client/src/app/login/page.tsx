@@ -44,7 +44,7 @@ export default function Page() {
         hashedPassword
       };
 
-      // Send the userData to your API using fetch
+      // Send request for logging in
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",

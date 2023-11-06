@@ -10,6 +10,7 @@ import { generateKeyPair, exportPublicKey, getHash } from "@/util/crypto";
 
 import "dotenv/config";
 import { openDB } from "idb";
+import { passwordStrength } from "check-password-strength";
 
 
 // Generate a RSA key pair (public key and private key)
@@ -75,38 +76,44 @@ export default function Page() {
       const exportedPublicKey = await generateAndStoreKeys();
 
       // Get the hash of the password before sending it to the backend
-      const hashedPassword = getHash(password);
-
-      // Construct an object with the input values
-      const userData = {
-        name,
-        email,
-        hashedPassword,
-        handle: username,
-        publicKey: exportedPublicKey
-      };
-
-      // Send the userData to using fetch
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        // Redirect to the "/message" route upon successful sign-up
-        router.push("/message");
-
-        const responseData = await response.json();
-        sessionStorage.setItem("userHandle", responseData.userHandle);
-        sessionStorage.setItem("userFullName", responseData.userFullName);
+      if (passwordStrength(password).value !== "Strong") {
+        setErrorMessage("Password must have a lowercase and uppercase letter, a symbol, and a number.");
+      } else if (! /^[a-zA-Z0-9]+$/.test(username)) {
+        setErrorMessage("Username must only contain alphanumeric characters.");
       } else {
-        // Handle error response from the API
-        const errorData = await response.json();
-        setErrorMessage(errorData.error);  // Set the error message received from backend
+        const hashedPassword = getHash(password);
+
+        // Construct an object with the input values
+        const userData = {
+          name,
+          email,
+          password: hashedPassword,
+          handle: username,
+          publicKey: exportedPublicKey
+        };
+
+        // Send the userData to using fetch
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        });
+
+        if (response.ok) {
+          // Redirect to the "/message" route upon successful sign-up
+          router.push("/message");
+
+          const responseData = await response.json();
+          sessionStorage.setItem("userHandle", responseData.userHandle);
+          sessionStorage.setItem("userFullName", responseData.userFullName);
+        } else {
+          // Handle error response from the API
+          const errorData = await response.json();
+          setErrorMessage(errorData.error);  // Set the error message received from backend
+        }
       }
     } catch (error) {
       // Handle any other errors

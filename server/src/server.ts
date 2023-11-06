@@ -24,6 +24,7 @@ import { storeMessage } from './helper/messageHelper';
 import { checkAuthorisation } from './helper/dmHelper';
 import { getUserByHandle } from './helper/userHelper';
 import { authPublicKey } from './auth/authPublicKey';
+import rateLimit from 'express-rate-limit';
 
 
 const prisma = new PrismaClient()
@@ -51,6 +52,16 @@ app.use(cors({
 
 const PORT: number = parseInt(process.env.PORT || '3000');
 const isProduction: boolean = process.env.NODE_ENV === "production"
+
+// Apply to all requests to limit requests for a single IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 
 // HEALTH CHECK ROUTE

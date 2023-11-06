@@ -75,12 +75,12 @@ export default function Page() {
       // Generate and store keys, and get the public key
       const exportedPublicKey = await generateAndStoreKeys();
 
-      // Get the hash of the password before sending it to the backend
       if (passwordStrength(password).value !== "Strong") {
         setErrorMessage("Password must have a lowercase and uppercase letter, a symbol, and a number.");
       } else if (! /^[a-zA-Z0-9]+$/.test(username)) {
         setErrorMessage("Username must only contain alphanumeric characters.");
       } else {
+        // Get the hash of the password before sending it to the backend
         const hashedPassword = getHash(password);
 
         // Construct an object with the input values

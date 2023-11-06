@@ -6,7 +6,7 @@ import { Button, Card, CardBody, Divider, Input, Link, Spinner } from "@nextui-o
 import { NavBar } from "@/components/NavbarPublic";
 import { ErrorMessage } from "@/components/ErrorMessage";
 
-import { generateKeyPair, exportPublicKey } from "@/util/crypto";
+import { generateKeyPair, exportPublicKey, getHash } from "@/util/crypto";
 
 import "dotenv/config";
 import { openDB } from "idb";
@@ -74,11 +74,14 @@ export default function Page() {
       // Generate and store keys, and get the public key
       const exportedPublicKey = await generateAndStoreKeys();
 
+      // Get the hash of the password before sending it to the backend
+      const hashedPassword = getHash(password);
+
       // Construct an object with the input values
       const userData = {
         name,
         email,
-        password,
+        hashedPassword,
         handle: username,
         publicKey: exportedPublicKey
       };

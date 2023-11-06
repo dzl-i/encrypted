@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import "dotenv/config";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { getHash } from "@/util/crypto";
 
 export default function Page() {
   const [email, setEmail] = useState<string>("");
@@ -34,10 +35,13 @@ export default function Page() {
     try {
       setIsLoading(true);
 
+      // Get the hash of the password before sending it to the backend
+      const hashedPassword = getHash(password);
+
       // Construct an object with the input values
       const userData = {
         email,
-        password
+        hashedPassword
       };
 
       // Send the userData to your API using fetch

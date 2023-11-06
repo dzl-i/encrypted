@@ -1,4 +1,5 @@
 import { openDB } from "idb";
+import crypto from "crypto";
 
 // Generate RSA Key Pair
 export const generateKeyPair = async () => {
@@ -219,4 +220,8 @@ export const decryptMessage = async (ciphertextBase64, aesKey) => {
   const decryptedMessage = textDecoder.decode(decryptedBuffer);
 
   return decryptedMessage;
+}
+
+export const getHash = (plaintext: string) => {
+  return crypto.createHash("sha256").update(plaintext).digest("hex");
 }

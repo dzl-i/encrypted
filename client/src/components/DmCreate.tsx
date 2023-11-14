@@ -92,7 +92,7 @@ export const DmCreate: React.FC<DmCreateProps> = ({ onClose, onCreateDm }) => {
         <Input isRequired size="md" type="name" label="Username" placeholder="Search..." onChange={handleUsernameChange} onKeyDown={handleKeyDown} />
       </CardBody>
       <CardFooter style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <Button color="primary" onClick={async () => handleCreateDm} disabled={isLoading} style={{ marginBottom: "1.5rem" }}>
+        <Button color="primary" onClick={handleCreateDm} disabled={isLoading} style={{ marginBottom: "1.5rem" }}>
           {isLoading ? <Spinner size="md" color="default" /> : "Create Direct Message"}
         </Button>
         <Button color="danger" onClick={onClose}>Cancel</Button>

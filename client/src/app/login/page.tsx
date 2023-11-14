@@ -41,7 +41,7 @@ export default function Page() {
       // Construct an object with the input values
       const userData = {
         email,
-        hashedPassword
+        password: hashedPassword
       };
 
       // Send request for logging in

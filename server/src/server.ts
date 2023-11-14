@@ -54,14 +54,14 @@ const PORT: number = parseInt(process.env.PORT || '3000');
 const isProduction: boolean = process.env.NODE_ENV === "production"
 
 // Apply to all requests to limit requests for a single IP
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-app.use(limiter);
+// app.use(limiter);
 
 
 // HEALTH CHECK ROUTE
